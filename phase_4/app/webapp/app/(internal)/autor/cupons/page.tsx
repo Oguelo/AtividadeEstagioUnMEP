@@ -1,17 +1,9 @@
 "use client";
-import { theme } from "@/app/theme";
 import React, { useEffect, useState } from "react";
-import { v4 as uuidv4 } from "uuid"; // Importe o gerador de UUID
-import Divider from "@/app/components/Divider";
-import Grid from "@mui/material/Unstable_Grid2";
-import DeleteOutlinedIcon from "@mui/icons-material/DeleteOutlined";
-import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
-import RemoveRedEyeOutlinedIcon from "@mui/icons-material/RemoveRedEyeOutlined";
-import TextareaAutosize from '@mui/material/TextareaAutosize';
-
+import { v4 as uuidv4 } from "uuid";
+import Cookies from 'js-cookie';
 import {
   Button,
-  Modal,
   styled,
   Dialog,
   TextField,
@@ -20,21 +12,28 @@ import {
   DialogContent,
   DialogActions,
   Stack,
-  Switch,
-  SelectChangeEvent,
+  Select,
+  MenuItem,
   Table,
   TableHead,
   TableRow,
   TableCell,
   TableBody,
-  Chip,
-  TableContainer,
   Paper,
+  TableContainer,
   TablePagination,
-  Select,
-  MenuItem,
 } from "@mui/material";
-import { Task } from "@mui/icons-material";
+import {
+  DeleteOutlined as DeleteOutlinedIcon,
+  EditOutlined as EditOutlinedIcon,
+  RemoveRedEyeOutlined as RemoveRedEyeOutlinedIcon,
+  Task,
+} from "@mui/icons-material";
+import TextareaAutosize from '@mui/material/TextareaAutosize';
+import Grid from "@mui/material/Unstable_Grid2";
+import Divider from "@/app/components/Divider"; // Certifique-se de fornecer o caminho correto
+
+const COOKIELIST = "tasksListSaved";
 
 const BootstrapDialog = styled(Dialog)(({ theme }) => ({
   "& .MuiDialogContent-root": {
@@ -54,54 +53,34 @@ const StyledDialogTitle = styled(DialogTitle)({
   fontSize: "20px",
 });
 
-const NewtaskModal = ({
-  open,
-  onClose,
-  onTaskCreate,
-}: {
-  open: boolean;
-  onClose: () => void;
-  onTaskCreate: (newTask: Task) => void;
-}) => {
-  const [isOpen, setIsOpen] = useState(open);
-
-  useEffect(() => {
-    setIsOpen(open);
-  }, [open]);
-
-  const [newtaskTitle, setNewtaskTitle] = useState("");
-  const [newtaskDescription, setNewtaskDescription] = useState("");
-  const [newtaskDate, setNewtaskDate] = useState("");
-  const [newtaskStatus, setNewtaskStatus] =
-    useState<Task["status"]>("Pendente");
+const NewTaskModal = ({ open, onClose, onTaskCreate }) => {
+  const [newTask, setNewTask] = useState({
+    title: "",
+    description: "",
+    date: "",
+    status: "Pendente",
+  });
 
   const handleCreateTask = () => {
-    const newTask: Task = {
-      title: newtaskTitle,
-      description: newtaskDescription,
-      date: newtaskDate,
-      status: newtaskStatus,
-    };
     onTaskCreate(newTask);
-    setIsOpen(false);
-
     onClose();
-    setNewtaskTitle("");
-    setNewtaskDescription("");
-    setNewtaskDate("");
-    setNewtaskStatus("Pendente");
+    setNewTask({
+      title: "",
+      description: "",
+      date: "",
+      status: "Pendente",
+    });
   };
 
-  const handleClose = (event, reason) => {
-    if (reason !== "backdropClick") {
-      setIsOpen(false);
+  const handleClose = (event) => {
+    if (event !== "backdropClick") {
       onClose();
     }
   };
 
   return (
     <BootstrapDialog
-      open={isOpen}
+      open={open}
       onClose={handleClose}
       fullWidth
       maxWidth={false}
@@ -118,9 +97,9 @@ const NewtaskModal = ({
               required
               fullWidth
               size="small"
-              value={newtaskTitle}
-              onChange={(e) => setNewtaskTitle(e.target.value)}
-            ></TextField>
+              value={newTask.title}
+              onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
+            />
           </Grid>
           <Grid xs={12}></Grid>
           <Grid xs={12} md={6}>
@@ -131,9 +110,9 @@ const NewtaskModal = ({
               size="small"
               multiline
               rows={4}
-              value={newtaskDescription}
-              onChange={(e) => setNewtaskDescription(e.target.value)}
-            ></TextField>
+              value={newTask.description}
+              onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
+            />
           </Grid>
           <Grid xs={12}></Grid>
           <Grid xs={12} md={6}>
@@ -143,11 +122,11 @@ const NewtaskModal = ({
               fullWidth
               type="date"
               size="small"
-              value={newtaskDate}
+              value={newTask.date}
               variant="outlined"
               InputLabelProps={{ shrink: true }}
-              onChange={(e) => setNewtaskDate(e.target.value)}
-            ></TextField>
+              onChange={(e) => setNewTask({ ...newTask, date: e.target.value })}
+            />
           </Grid>
         </Grid>
       </DialogContent>
@@ -181,48 +160,66 @@ const NewtaskModal = ({
 };
 
 const ListaTasks = () => {
-  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-  const [tasks, setTasks] = useState<Task[]>([]);
+  const [selectedTask, setSelectedTask] = useState(null);
+  const [tasks, setTasks] = useState([]);
   const [open, setOpen] = useState(false);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [hoveredRow, setHoveredRow] = useState(null);
   const [openModal, setOpenModal] = useState(false);
-  const [detailedTask, setDetailedTask] = useState<Task | null>(null);
-  
+  const [detailedTask, setDetailedTask] = useState(null);
 
-  const TaskCreate = (newTask: Task) => {
-    setTasks((prevTasks) => [...prevTasks, newTask]);
+  useEffect(() => {
+    const savedTasksJSON = Cookies.get(COOKIELIST);
+    if (savedTasksJSON) {
+      const savedTasks = JSON.parse(savedTasksJSON);
+      setTasks(savedTasks);
+    }
+  }, []);
+
+  const saveTasksToCookie = (updatedTasks) => {
+    Cookies.set(COOKIELIST, JSON.stringify(updatedTasks));
   };
 
-  const StatusChange = (task: Task, newStatus: Task["status"]) => {
-    setTasks((prevTasks) =>
-      prevTasks.map((t) => (t === task ? { ...t, status: newStatus } : t))
-    );
+  const TaskCreate = (newTask) => {
+    setTasks((prevTasks) => {
+      const updatedTasks = [...prevTasks, newTask];
+      saveTasksToCookie(updatedTasks);
+      return updatedTasks;
+    });
   };
 
-  const ChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const StatusChange = (task, newStatus) => {
+    setTasks((prevTasks) => {
+      const updatedTasks = prevTasks.map((t) =>
+        t === task ? { ...t, status: newStatus } : t
+      );
+      saveTasksToCookie(updatedTasks);
+      return updatedTasks;
+    });
+  };
+
+  const ChangeRowsPerPage = (event) => {
     setRowsPerPage(+event.target.value);
     setPage(0);
   };
 
-  const ChangePage = (event: unknown, newPage: number) => {
+  const ChangePage = (_, newPage) => {
     setPage(newPage);
   };
 
-  const DeleteTask = (taskToDelete: Task) => {
+  const DeleteTask = (taskToDelete) => {
     const updatedTasks = tasks.filter((task) => task !== taskToDelete);
     setTasks(updatedTasks);
     setSelectedTask(null);
-    setOpenModal(false); // Fechar o modal após a exclusão
+    setOpenModal(false);
+    saveTasksToCookie(updatedTasks);
   };
 
   const EditTask = () => {
     console.log("Editar tarefa:", selectedTask);
   };
 
-
-  const handleOpenDetailedModal = (task: Task) => {
+  const handleOpenDetailedModal = (task) => {
     setDetailedTask(task);
     setOpenModal(true);
   };
@@ -238,7 +235,7 @@ const ListaTasks = () => {
         mb={2}
       >
         <Grid xs={4}>
-          <Typography sx={{ color: theme.palette.dark.main }} variant="h6">
+          <Typography color="dark.main" variant="h6">
             Minhas Tarefas
           </Typography>
           <Divider width={"35%"} />
@@ -272,10 +269,7 @@ const ListaTasks = () => {
                   {tasks
                     .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                     .map((task, index) => (
-                      <TableRow
-                        key={index}
-                        
-                      >
+                      <TableRow key={index}>
                         <TableCell align="center">{task.title}</TableCell>
                         <TableCell align="center">{task.date}</TableCell>
                         <TableCell align="center">
@@ -284,7 +278,7 @@ const ListaTasks = () => {
                             onChange={(e) =>
                               StatusChange(
                                 task,
-                                e.target.value as Task["status"]
+                                e.target.value
                               )
                             }
                             style={{
@@ -312,7 +306,7 @@ const ListaTasks = () => {
                             </MenuItem>
                             <MenuItem
                               value="Pendente"
-                              style={{ backgroundColor: "	OrangeRed" }}
+                              style={{ backgroundColor: "OrangeRed" }}
                             >
                               Pendente
                             </MenuItem>
@@ -346,7 +340,7 @@ const ListaTasks = () => {
                             onClick={() => handleOpenDetailedModal(task)}
                             startIcon={<RemoveRedEyeOutlinedIcon />}
                           >
-                            Descriçao
+                            Descrição
                           </Button>
                         </TableCell>
                       </TableRow>
@@ -367,7 +361,7 @@ const ListaTasks = () => {
         </Grid>
       </Grid>
 
-      <NewtaskModal
+      <NewTaskModal
         open={open}
         onClose={() => {
           setOpen(false);
@@ -377,19 +371,19 @@ const ListaTasks = () => {
       <BootstrapDialog open={openModal} onClose={() => setOpenModal(false)}>
         <DialogContent dividers>
           <Typography variant="h5" color="primary" dividers style={{ maxHeight: '80vh'}} >
-            Descriçao da Tarefa
+            Descrição da Tarefa
           </Typography>
           {detailedTask && (
             <>
               <Typography variant="subtitle1">
-                <strong>Descriçao:</strong> 
+                <strong>Descrição:</strong>
               </Typography>
               <TextareaAutosize
-          readOnly
-          aria-label="Descrição da tarefa"
-          value={detailedTask.description}
-          style={{ width: '100%', minHeight: '100px', maxHeight: '300px' }}
-        />
+                readOnly
+                aria-label="Descrição da tarefa"
+                value={detailedTask.description}
+                style={{ width: '100%', minHeight: '100px', maxHeight: '300px' }}
+              />
             </>
           )}
         </DialogContent>
