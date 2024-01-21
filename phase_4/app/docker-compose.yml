@@ -1,0 +1,37 @@
+services:
+  webapp:
+    build: './webapp'
+    ports:
+      - '80:3000'
+      - '4000:6006'
+    container_name: tasks_webapp
+    networks:
+      - tasks-network
+    volumes:
+      - ./webapp:/usr/app/
+      - /usr/app/node_modules
+  api:
+    build: './api'
+    ports:
+      - '3000:8000'
+    container_name: tasks_api
+    networks:
+      - tasks-network
+    volumes:
+      - ./api/:/usr/app/
+  database:
+    image: mysql
+    ports:
+      - '3306:3306'
+    container_name: tasks_database
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: tasks
+    networks:
+      - tasks-network
+    volumes:
+      - ${MYSQL_VOLUME_PATH:-./mysql}:/var/lib/mysql
+
+networks:
+  tasks-network:
+    driver: bridge
