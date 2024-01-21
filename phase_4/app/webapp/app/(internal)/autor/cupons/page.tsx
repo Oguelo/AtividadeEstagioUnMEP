@@ -5,8 +5,10 @@ import { v4 as uuidv4 } from "uuid"; // Importe o gerador de UUID
 import Divider from "@/app/components/Divider";
 import Grid from "@mui/material/Unstable_Grid2";
 import DeleteOutlinedIcon from "@mui/icons-material/DeleteOutlined";
-import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
-import RemoveRedEyeOutlinedIcon from '@mui/icons-material/RemoveRedEyeOutlined';
+import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
+import RemoveRedEyeOutlinedIcon from "@mui/icons-material/RemoveRedEyeOutlined";
+import TextareaAutosize from '@mui/material/TextareaAutosize';
+
 import {
   Button,
   Modal,
@@ -33,15 +35,6 @@ import {
   MenuItem,
 } from "@mui/material";
 import { Task } from "@mui/icons-material";
-
-
-interface Task {
-  id: string; // Adiciona o campo 'id' às tarefas
-  title: string;
-  description: string;
-  date: string;
-  status: "Em Andamento" | "Concluída" | "Pendente";
-}
 
 const BootstrapDialog = styled(Dialog)(({ theme }) => ({
   "& .MuiDialogContent-root": {
@@ -84,7 +77,6 @@ const NewtaskModal = ({
 
   const handleCreateTask = () => {
     const newTask: Task = {
-      id: uuidv4(),
       title: newtaskTitle,
       description: newtaskDescription,
       date: newtaskDate,
@@ -194,18 +186,18 @@ const ListaTasks = () => {
   const [open, setOpen] = useState(false);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [deleteConfirmation, setDeleteConfirmation] = useState(false);
   const [hoveredRow, setHoveredRow] = useState(null);
   const [openModal, setOpenModal] = useState(false);
+  const [detailedTask, setDetailedTask] = useState<Task | null>(null);
+  
 
   const TaskCreate = (newTask: Task) => {
     setTasks((prevTasks) => [...prevTasks, newTask]);
   };
-  const StatusChange = (taskId: string, newStatus: Task["status"]) => {
+
+  const StatusChange = (task: Task, newStatus: Task["status"]) => {
     setTasks((prevTasks) =>
-      prevTasks.map((task) =>
-        task.id === taskId ? { ...task, status: newStatus } : task
-      )
+      prevTasks.map((t) => (t === task ? { ...t, status: newStatus } : t))
     );
   };
 
@@ -217,31 +209,24 @@ const ListaTasks = () => {
   const ChangePage = (event: unknown, newPage: number) => {
     setPage(newPage);
   };
-  const DeleteTask = (task: Task) => {
-    if (task && task.id) {
-      const updatedTasks = tasks.filter((t) => t.id !== task.id);
-      setTasks(updatedTasks);
-      setSelectedTask(null);
-      setOpenModal(false); // Fechar o modal após a exclusão
-    }
+
+  const DeleteTask = (taskToDelete: Task) => {
+    const updatedTasks = tasks.filter((task) => task !== taskToDelete);
+    setTasks(updatedTasks);
+    setSelectedTask(null);
+    setOpenModal(false); // Fechar o modal após a exclusão
   };
-  
-  
-  
-  
+
   const EditTask = () => {
     console.log("Editar tarefa:", selectedTask);
   };
-  const handleOpen = () => {
+
+
+  const handleOpenDetailedModal = (task: Task) => {
+    setDetailedTask(task);
     setOpenModal(true);
-};
+  };
 
-
-const handleClose = () => {
-    setOpenModal(false);
-};  
-
- 
   return (
     <Grid container>
       <Grid
@@ -288,16 +273,8 @@ const handleClose = () => {
                     .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                     .map((task, index) => (
                       <TableRow
-                        key={task.id}
-        
-                        style={{
-                          backgroundColor:
-                            selectedTask && task.id === selectedTask.id
-                              ? "lightblue"
-                              : index === hoveredRow
-                              ? "lightgray"
-                              : "white",
-                        }}
+                        key={index}
+                        
                       >
                         <TableCell align="center">{task.title}</TableCell>
                         <TableCell align="center">{task.date}</TableCell>
@@ -306,7 +283,7 @@ const handleClose = () => {
                             value={task.status}
                             onChange={(e) =>
                               StatusChange(
-                                task.id,
+                                task,
                                 e.target.value as Task["status"]
                               )
                             }
@@ -315,9 +292,9 @@ const handleClose = () => {
                                 task.status === "Em Andamento"
                                   ? "yellow"
                                   : task.status === "Concluída"
-                                  ? "green"
+                                  ? "Chartreuse"
                                   : task.status === "Pendente"
-                                  ? "red"
+                                  ? "OrangeRed"
                                   : "",
                             }}
                           >
@@ -329,13 +306,13 @@ const handleClose = () => {
                             </MenuItem>
                             <MenuItem
                               value="Concluída"
-                              style={{ backgroundColor: "green" }}
+                              style={{ backgroundColor: "Chartreuse" }}
                             >
                               Concluída
                             </MenuItem>
                             <MenuItem
                               value="Pendente"
-                              style={{ backgroundColor: "red" }}
+                              style={{ backgroundColor: "	OrangeRed" }}
                             >
                               Pendente
                             </MenuItem>
@@ -348,18 +325,17 @@ const handleClose = () => {
                             color="error"
                             startIcon={<DeleteOutlinedIcon />}
                             onClick={() => {
-                                setSelectedTask(task);
-                                DeleteTask(task);
-                              }}
+                              setSelectedTask(task);
+                              DeleteTask(task);
+                            }}
                           >
                             Excluir
                           </Button>
-
                           <Button
                             size="small"
                             variant="contained"
                             onClick={EditTask}
-                            startIcon={<EditOutlinedIcon/>}
+                            startIcon={<EditOutlinedIcon />}
                           >
                             Editar
                           </Button>
@@ -367,13 +343,10 @@ const handleClose = () => {
                             color="success"
                             size="small"
                             variant="contained"
-                            onClick={(e) => {
-                                e.preventDefault();
-                                setOpenModal(true);
-                            }}
-                            startIcon={<RemoveRedEyeOutlinedIcon/>}
+                            onClick={() => handleOpenDetailedModal(task)}
+                            startIcon={<RemoveRedEyeOutlinedIcon />}
                           >
-                            Ver mais
+                            Descriçao
                           </Button>
                         </TableCell>
                       </TableRow>
@@ -401,14 +374,34 @@ const handleClose = () => {
         }}
         onTaskCreate={TaskCreate}
       />
-      <BootstrapDialog open={openModal} onClose={handleClose}>
-        <div>
-          <h2>Conteúdo do Modal</h2>
-          <p>Este é o conteúdo do modal.</p>
-          <Button onClick={handleClose} variant="contained" color="primary">
+      <BootstrapDialog open={openModal} onClose={() => setOpenModal(false)}>
+        <DialogContent dividers>
+          <Typography variant="h5" color="primary" dividers style={{ maxHeight: '80vh'}} >
+            Descriçao da Tarefa
+          </Typography>
+          {detailedTask && (
+            <>
+              <Typography variant="subtitle1">
+                <strong>Descriçao:</strong> 
+              </Typography>
+              <TextareaAutosize
+          readOnly
+          aria-label="Descrição da tarefa"
+          value={detailedTask.description}
+          style={{ width: '100%', minHeight: '100px', maxHeight: '300px' }}
+        />
+            </>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => setOpenModal(false)}
+            variant="contained"
+            color="primary"
+          >
             Fechar
           </Button>
-        </div>
+        </DialogActions>
       </BootstrapDialog>
     </Grid>
   );
