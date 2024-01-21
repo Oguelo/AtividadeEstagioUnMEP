@@ -1,7 +1,6 @@
 "use client";
 
 import { theme } from '@/app/theme'
-
 import { Outfit } from "next/font/google";
 import { Typography } from "@mui/material";
 import { useSystem } from "../services/SystemService";

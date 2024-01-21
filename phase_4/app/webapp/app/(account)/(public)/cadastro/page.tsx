@@ -62,7 +62,7 @@ const ClientRegister = () => {
         setOpenModal(true);
     };
 
-    // Função para fechar o modal
+   
     const handleClose = () => {
         setOpenModal(false);
     };

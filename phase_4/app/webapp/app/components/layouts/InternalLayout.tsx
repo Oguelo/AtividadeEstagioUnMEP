@@ -8,6 +8,7 @@ import { Avatar, Button, Container, Grid, Paper, Typography } from "@mui/materia
 import { Discount, Groups, Home, LibraryBooks, Logout, Person, SubdirectoryArrowRight } from "@mui/icons-material";
 
 export default function InternalLayout({ children }: { children: React.ReactNode }) {
+    
     const name = "";
     const avatarSrc =
         "https://st2.depositphotos.com/1104517/11967/v/950/depositphotos_119675554-stock-illustration-male-avatar-profile-picture-vector.jpg";
@@ -56,8 +57,8 @@ export default function InternalLayout({ children }: { children: React.ReactNode
                           
                             <Grid item xs={12} sx={{ textAlign: "center", paddingY: 1.5 }}>
                                 <Avatar sx={{ margin: "auto", width: 56, height: 56 }} src={avatarSrc} />
-                                <Typography variant="h5" color="darker">
-                                    {name}
+                                <Typography variant="h4" color="darker">
+                                    Lista de Tarefas
                                 </Typography>
                                
                             </Grid>
