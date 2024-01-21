@@ -1,5 +1,6 @@
 "use client";
 import { Theme, ThemeProvider, createTheme } from "@mui/material/styles";
+import { styled, Dialog, DialogTitle } from "@mui/material";
 
 declare module "@mui/material/styles" {
     interface PaletteColorOptions {
@@ -86,47 +87,33 @@ export const theme: Theme = createTheme({
             main: "#F5FFFA",
         },
     },
-    components: {
-        MuiTab: {
-            styleOverrides: {
-                root: {
-                    "&.Mui-selected": {
-                        backgroundColor: secondary,
-                        color: primary,
-                        transition: "all 0.5s",
-                        borderRadius: "20px 20px 0 0",
-                    },
-                    "&:not(.Mui-selected)": {
-                        backgroundColor: darker,
-                        color: "#fff",
-                        borderRadius: "20px 20px 0 0",
-                    },
-                },
-            },
-        },
-        MuiListItemText: {
-            styleOverrides: {
-                root: {
-                    color: dark,
-                },
-            },
-        },
-        MuiListItemIcon: {
-            styleOverrides: {
-                root: {
-                    color: dark,
-                },
-            },
-        },
-        MuiDialogContent: {
-            styleOverrides: {
-                root: {
-                    padding: "10%",
-                },
-            },
-        },
-    },
+    
 });
+export const BootstrapDialog = styled(Dialog)(({ theme }) => ({
+    "& .MuiDialogContent-root": {
+      padding: theme.spacing(2),
+    },
+    "& .MuiDialogActions-root": {
+      padding: theme.spacing(1),
+    },
+  }));
+  
+  export const StyledDialogTitle = styled(DialogTitle)({
+    m: 0,
+    p: 2,
+    textAlign: "center",
+    backgroundColor: "#E5E2E2",
+    fontFamily: "Roboto",
+    fontSize: "20px",
+  });
+  // themes.js
+
+export const TaskStatusColors = {
+    "Em Andamento": "yellow",
+    "Concluída": "Chartreuse",
+    "Pendente": "OrangeRed",
+  };
+  
 
 export default function ThemeRegistry(props: React.PropsWithChildren) {
     const { children } = props;

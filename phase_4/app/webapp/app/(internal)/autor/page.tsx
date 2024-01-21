@@ -95,7 +95,7 @@ export default function Page() {
             </Grid>
             <Grid xs={12} container>
                 <Grid xs={12}>
-                    <Typography color="darker.main">Visualizações</Typography>
+                    <Typography sx={{ color: theme.palette.dark.main }}>Visualizações</Typography>
                 </Grid>
                 <Grid xs={7}>
                     <VisualizationChart data={data} />
@@ -109,7 +109,7 @@ export default function Page() {
                     <Card elevation={0} sx={{ padding: 2 }}>
                         <Grid container xs={12}>
                             <Grid xs={9}>
-                                <Typography color="darker.main">eBooks</Typography>
+                                <Typography sx={{ color: theme.palette.dark.main }}>eBooks</Typography>
                             </Grid>
                             <Grid xs={3}>
                                 <TableSelect items={categories} title="Categorias" onChange={(e) => {
