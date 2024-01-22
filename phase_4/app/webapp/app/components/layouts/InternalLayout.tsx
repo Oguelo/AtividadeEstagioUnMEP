@@ -3,7 +3,7 @@
 import Link from "next/link";
 import React, { useState } from "react";
 import AccountHeader from "../AccountHeader";
-import { UserLevel } from "@/app/interfaces/User";
+import { UserLevel } from "@/app/interfaces/Task";
 import { Avatar, Button, Container, Grid, Paper, Typography } from "@mui/material";
 import { Discount, Groups, Home, LibraryBooks, Logout, Person, SubdirectoryArrowRight } from "@mui/icons-material";
 

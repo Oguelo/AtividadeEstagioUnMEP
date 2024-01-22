@@ -3,14 +3,8 @@ import React, { useEffect, useState } from "react";
 import Cookies from "js-cookie";
 import {
   Button,
-  styled,
-  Dialog,
-  TextField,
   Typography,
-  DialogTitle,
-  DialogContent,
   DialogActions,
-  Stack,
   Select,
   MenuItem,
   Table,
@@ -26,7 +20,6 @@ import {
   DeleteOutlined as DeleteOutlinedIcon,
   EditOutlined as EditOutlinedIcon,
   RemoveRedEyeOutlined as RemoveRedEyeOutlinedIcon,
-  Task,
 } from "@mui/icons-material";
 import Grid from "@mui/material/Unstable_Grid2";
 import Divider from "@/app/components/Divider"; // Certifique-se de fornecer o caminho correto
@@ -51,7 +44,7 @@ const ListaTasks = () => {
   const [detailedTask, setDetailedTask] = useState(null);
   const [editedTask, setEditedTask] = useState(null);
 
-  useEffect(() => {
+  useEffect(() => {// vou chamar a lista de tasks por aqui, nao apagar
     const SavedTasksJSON = Cookies.get(COOKIELIST);
     if (SavedTasksJSON) {
       const savedTasks = JSON.parse(SavedTasksJSON);

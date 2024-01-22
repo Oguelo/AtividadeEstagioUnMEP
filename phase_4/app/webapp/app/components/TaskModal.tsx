@@ -19,7 +19,7 @@ import {
   TextareaAutosize,
 } from "@mui/material";
 import Grid from "@mui/material/Unstable_Grid2";
-import Divider from "@/app/components/Divider"; // Certifique-se de fornecer o caminho correto
+// Certifique-se de fornecer o caminho correto
 import { theme } from "@/app/theme";
 import {
   BootstrapDialog,

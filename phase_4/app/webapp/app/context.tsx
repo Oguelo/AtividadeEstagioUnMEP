@@ -7,8 +7,8 @@ export const defaultUser = {
         id: 1,
         tipo: '',
         status: '',
-        nome: "Almir Livrum",
-        email: 'livrum@gmail.com',
+        nome: "Alexjr",
+        email: '',
     },
 };
 
