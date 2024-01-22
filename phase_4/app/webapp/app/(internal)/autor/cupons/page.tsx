@@ -1,6 +1,5 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { v4 as uuidv4 } from "uuid";
 import Cookies from "js-cookie";
 import {
   Button,
@@ -32,143 +31,14 @@ import {
 import Grid from "@mui/material/Unstable_Grid2";
 import Divider from "@/app/components/Divider"; // Certifique-se de fornecer o caminho correto
 import { theme } from "@/app/theme";
+import { TaskStatusColors } from "@/app/theme";
 import {
-  BootstrapDialog,
-  StyledDialogTitle,
-  TaskStatusColors,
-} from "@/app/theme";
-import TaskDescription from "@/app/components/taskDescription";
+  TaskDescription,
+  TaskEdit,
+  NewTaskModal,
+} from "@/app/components/TaskModal";
+
 const COOKIELIST = "tasksListSaved";
-
-const NewTaskModal = ({ open, onClose, onTaskCreate }) => {
-  const [newTask, setNewTask] = useState({title: "",description: "",date: "",status: "Pendente",});
-  const handleCreateTask = () => {onTaskCreate(newTask);onClose();setNewTask({ title: "", description: "", date: "", status: "Pendente" });};
-  const handleClose = (event) => {
-    if (event !== "backdropClick") {
-      onClose();
-    }
-  };
-  const isFormValid = () => {
-    return (
-      newTask.title.trim() !== "" &&
-      newTask.description.trim() !== "" &&
-      newTask.date.trim() !== ""
-    );
-  };
-  return (
-    <BootstrapDialog
-      open={open}
-      onClose={handleClose}
-      fullWidth
-      maxWidth={false}
-      style={{ width: "100%", height: "100%" }}
-    >
-      <StyledDialogTitle id="customized-dialog-title">
-        <strong>Criar nova tarefa</strong>
-      </StyledDialogTitle>
-      <DialogContent dividers>
-        <Grid container justifyContent="center">
-          <Grid xs={12} md={6}>
-            <Grid xs={5} sx={{ textAlign: "right" }}>
-              <label style={{ color: theme.palette.dark.main }}>
-                Preencha todos os campos *
-              </label>
-            </Grid>
-            <Typography sx={{ color: theme.palette.dark.main }}>
-              Titulo:
-            </Typography>
-            <TextField
-              required
-              fullWidth
-              size="small"
-              value={newTask.title}
-              onChange={(e) =>
-                setNewTask({ ...newTask, title: e.target.value })
-              }
-            />
-          </Grid>
-          <Grid xs={12}></Grid>
-          <Grid xs={12} md={6}>
-            <Typography sx={{ color: theme.palette.dark.main }}>
-              Descrição:
-            </Typography>
-            <TextField
-              required
-              fullWidth
-              size="small"
-              multiline
-              rows={4}
-              value={newTask.description}
-              onChange={(e) =>
-                setNewTask({ ...newTask, description: e.target.value })
-              }
-            />
-          </Grid>
-          <Grid xs={12}></Grid>
-          <Select
-            value={newTask.status}
-            style={{
-              backgroundColor: TaskStatusColors[newTask.status] || "",
-            }}
-            onChange={(e) => setNewTask({ ...newTask, status: e.target.value })}
-          >
-            {Object.keys(TaskStatusColors).map((status) => (
-              <MenuItem
-                key={status}
-                value={status}
-                style={{ backgroundColor: TaskStatusColors[status] }}
-              >
-                {status}
-              </MenuItem>
-            ))}
-          </Select>
-          <Grid xs={12}></Grid>
-          <Grid xs={12} md={6}>
-            <Typography sx={{ color: theme.palette.dark.main }}>
-              Data:
-            </Typography>
-            <TextField
-              required
-              fullWidth
-              type="date"
-              size="small"
-              value={newTask.date}
-              variant="outlined"
-              InputLabelProps={{ shrink: true }}
-              onChange={(e) => setNewTask({ ...newTask, date: e.target.value })}
-            />
-          </Grid>
-        </Grid>
-      </DialogContent>
-
-      <DialogActions>
-        <Stack
-          justifyContent="center"
-          gap={2}
-          flexDirection="row"
-          width={1.0}
-          flexWrap="wrap"
-        >
-          <Button
-            sx={{ backgroundColor: theme.palette.success.main }}
-            variant="contained"
-            onClick={handleCreateTask}
-            disabled={!isFormValid()}
-          >
-            Criar
-          </Button>
-          <Button
-            sx={{ backgroundColor: theme.palette.error.main }}
-            variant="contained"
-            onClick={(e) => handleClose(e, "click")}
-          >
-            Cancelar
-          </Button>
-        </Stack>
-      </DialogActions>
-    </BootstrapDialog>
-  );
-};
 
 const ListaTasks = () => {
   const [selectedTask, setSelectedTask] = useState(null);
@@ -177,7 +47,9 @@ const ListaTasks = () => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [openModal, setOpenModal] = useState(false);
+  const [openEditModal, setOpenEditModal] = useState(false);
   const [detailedTask, setDetailedTask] = useState(null);
+  const [editedTask, setEditedTask] = useState(null);
 
   useEffect(() => {
     const SavedTasksJSON = Cookies.get(COOKIELIST);
@@ -217,7 +89,17 @@ const ListaTasks = () => {
   const ChangePage = (_, newPage) => {
     setPage(newPage);
   };
-
+  const EditTask = (editTask) => {
+    setTasks((prevTasks) => {
+      const updatedTasks = prevTasks.map((task) =>
+        task !== editedTask ? task : { ...task, ...editTask }
+      );
+      SaveTasksToCookie(updatedTasks);
+      return updatedTasks;
+    });
+    setOpenEditModal(false);
+  };
+  
   const DeleteTask = (taskToDelete) => {
     const updatedTasks = tasks.filter((task) => task !== taskToDelete);
     setTasks(updatedTasks);
@@ -226,15 +108,14 @@ const ListaTasks = () => {
     SaveTasksToCookie(updatedTasks);
   };
 
-  const EditTask = () => {
-    console.log("Editar tarefa:", selectedTask);
+  const OpenEditModal = (task) => {
+    setEditedTask(task);
+    setOpenEditModal(true);
   };
 
   const OpenDetailedModal = (task) => {
     setDetailedTask(task);
     setOpenModal(true);
-    
-
   };
 
   return (
@@ -308,35 +189,37 @@ const ListaTasks = () => {
                           </Select>
                         </TableCell>
                         <TableCell align="center">
-                          <Button
-                            size="small"
-                            variant="contained"
-                            color="error"
-                            startIcon={<DeleteOutlinedIcon />}
-                            onClick={() => {
-                              setSelectedTask(task);
-                              DeleteTask(task);
-                            }}
-                          >
-                            Excluir
-                          </Button>
-                          <Button
-                            size="small"
-                            variant="contained"
-                            onClick={EditTask}
-                            startIcon={<EditOutlinedIcon />}
-                          >
-                            Editar
-                          </Button>
-                          <Button
-                            color="success"
-                            size="small"
-                            variant="contained"
-                            onClick={() => OpenDetailedModal(task)}
-                            startIcon={<RemoveRedEyeOutlinedIcon />}
-                          >
-                            Descrição
-                          </Button>
+                          <DialogActions>
+                            <Button
+                              size="small"
+                              variant="contained"
+                              color="error"
+                              startIcon={<DeleteOutlinedIcon />}
+                              onClick={() => {
+                                setSelectedTask(task);
+                                DeleteTask(task);
+                              }}
+                            >
+                              Excluir
+                            </Button>
+                            <Button
+                              size="small"
+                              variant="contained"
+                              onClick={() => OpenEditModal(task)}
+                              startIcon={<EditOutlinedIcon />}
+                            >
+                              Editar
+                            </Button>
+                            <Button
+                              color="success"
+                              size="small"
+                              variant="contained"
+                              onClick={() => OpenDetailedModal(task)}
+                              startIcon={<RemoveRedEyeOutlinedIcon />}
+                            >
+                              Descrição
+                            </Button>
+                          </DialogActions>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -367,6 +250,12 @@ const ListaTasks = () => {
         open={openModal}
         onClose={() => setOpenModal(false)}
         detailedTask={detailedTask}
+      />
+      <TaskEdit
+        open={openEditModal}
+        onClose={() => setOpenEditModal(false)}
+        editedTask={editedTask}
+        onEditTask={EditTask} 
       />
     </Grid>
   );
