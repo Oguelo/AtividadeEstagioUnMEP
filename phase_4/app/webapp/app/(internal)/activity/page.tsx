@@ -30,6 +30,7 @@ import {
   TaskEdit,
   NewTaskModal,
 } from "@/app/components/TaskModal";
+import axios from "axios";
 
 const COOKIELIST = "tasksListSaved";
 
@@ -43,36 +44,52 @@ const ListaTasks = () => {
   const [openEditModal, setOpenEditModal] = useState(false);
   const [detailedTask, setDetailedTask] = useState(null);
   const [editedTask, setEditedTask] = useState(null);
-
-  useEffect(() => {// vou chamar a lista de tasks por aqui, nao apagar
-    const SavedTasksJSON = Cookies.get(COOKIELIST);
-    if (SavedTasksJSON) {
-      const savedTasks = JSON.parse(SavedTasksJSON);
-      setTasks(savedTasks);
-    }
+  useEffect(() => {
+    const getData = async () => {
+      try {
+        const response = await axios.get('http://localhost:3000/activity/all');
+        const tasksList = response.data;
+  
+        setTasks(tasksList);
+      } catch (error) {
+        console.error('Erro durante a requisição GET:', error);
+      }
+    };
+  
+    getData();
   }, []);
+  
 
-  const SaveTasksToCookie = (updatedTasks) => {
-    Cookies.set(COOKIELIST, JSON.stringify(updatedTasks));
+  const TaskCreate = async (newTask) => {
+    try {
+      const response = await axios.post('http://localhost:3000/activity', newTask);
+      const mensagem = response.data.message;
+      
+      if (mensagem === "OK") {
+        const { id, title, description, date, status } = response.data;
+        const newTaskWithId = { id, title, description, date, status };
+        setTasks((prevTasks) => [...prevTasks, newTaskWithId]);
+      }
+    } catch (error) {
+      console.error('A task não foi salva:', error);
+    }
   };
+  
 
-  const TaskCreate = (newTask) => {
-    setTasks((prevTasks) => {
-      const updatedTasks = [...prevTasks, newTask];
-      SaveTasksToCookie(updatedTasks);
-      return updatedTasks;
-    });
-  };
-
-  const StatusChange = (task, newStatus) => {
-    setTasks((prevTasks) => {
-      const updatedTasks = prevTasks.map((t) =>
+  const StatusChange = async (task, newStatus) => {
+    try {
+      const updatedTasks = tasks.map((t) =>
         t === task ? { ...t, status: newStatus } : t
       );
-      SaveTasksToCookie(updatedTasks);
-      return updatedTasks;
-    });
+      const id = task.id;
+      setTasks(updatedTasks);
+  
+      const response = await axios.patch(`http://localhost:3000/activity/${id}`, { ...task, status: newStatus });
+    } catch (error) {
+      console.error('Erro durante a atualização da tarefa:', error);
+    }
   };
+  
 
   const ChangeRowsPerPage = (event) => {
     setRowsPerPage(+event.target.value);
@@ -82,16 +99,21 @@ const ListaTasks = () => {
   const ChangePage = (_, newPage) => {
     setPage(newPage);
   };
-  const EditTask = (editTask) => {
-    setTasks((prevTasks) => {
-      const updatedTasks = prevTasks.map((task) =>
-        task !== editedTask ? task : { ...task, ...editTask }
+  const EditTask = async (editTask) => {
+    try {
+      const updatedTasks = tasks.map((t) =>
+        t === editTask ? { ...t, ...editTask } : t
       );
-      SaveTasksToCookie(updatedTasks);
-      return updatedTasks;
-    });
+      const id = editTask.id;
+      setTasks(updatedTasks);
+  
+      const response = await axios.patch(`http://localhost:3000/activity/${id}`, editTask);
+    } catch (error) {
+      console.error('Erro durante a atualização da tarefa:', error);
+    }
     setOpenEditModal(false);
   };
+  
   
   const DeleteTask = (taskToDelete) => {
     const updatedTasks = tasks.filter((task) => task !== taskToDelete);

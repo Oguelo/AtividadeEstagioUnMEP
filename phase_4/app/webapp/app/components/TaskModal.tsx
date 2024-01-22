@@ -8,18 +8,9 @@ import {
   Stack,
   Select,
   MenuItem,
-  Table,
-  TableHead,
-  TableRow,
-  TableCell,
-  TableBody,
-  Paper,
-  TableContainer,
-  TablePagination,
   TextareaAutosize,
 } from "@mui/material";
 import Grid from "@mui/material/Unstable_Grid2";
-// Certifique-se de fornecer o caminho correto
 import { theme } from "@/app/theme";
 import {
   BootstrapDialog,
@@ -29,6 +20,7 @@ import {
 
 const NewTaskModal = ({ open, onClose, onTaskCreate }) => {
   const [newTask, setNewTask] = useState({
+    id: null,
     title: "",
     description: "",
     date: "",
@@ -37,12 +29,12 @@ const NewTaskModal = ({ open, onClose, onTaskCreate }) => {
   const handleCreateTask = () => {
     onTaskCreate(newTask);
     onClose();
-    setNewTask({ title: "", description: "", date: "", status: "Pendente" });
+    setNewTask({ id: null, title: "", description: "", date: "", status: "Pendente" });
   };
   const handleClose = (event) => {
     if (event !== "backdropClick") {
       onClose();
-      setNewTask({ title: "", description: "", date: "", status: "Pendente" });
+      setNewTask({ id: null, title: "", description: "", date: "", status: "Pendente" });
     }
   };
   const isFormValid = () => {
