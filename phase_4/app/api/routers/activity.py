@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter,HTTPException,status
 from models.activity import ActivityUpdate, ActivityBase
 from services import servicesTasks
 
@@ -7,8 +7,11 @@ router = APIRouter(prefix="/activity", tags=["Activity"])
 
 @router.post("/", description="Create an activity")
 def create_activity(new_activity: ActivityUpdate):
-    servicesTasks.create_activity(new_activity)
-    return f"Tarefa criada"
+    id_generate = servicesTasks.create_activity(new_activity)
+    if id_generate:
+         return {"message": "OK", "id": id_generate, "title": new_activity.title, "description": new_activity.description, "date": new_activity.date, "status": new_activity.status}
+    else:
+        return HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Falha ao criar a atividade")
 
 
 @router.get("/all", description="Get all activities")

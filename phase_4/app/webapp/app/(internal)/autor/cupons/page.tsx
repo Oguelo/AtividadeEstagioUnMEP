@@ -1,7 +1,8 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { v4 as uuidv4 } from "uuid";
+
 import Cookies from "js-cookie";
+import axios from "axios";
 import {
   Button,
   styled,
@@ -37,12 +38,12 @@ import {
   StyledDialogTitle,
   TaskStatusColors,
 } from "@/app/theme";
-import TaskDescription from "@/app/components/taskDescription";
+import TaskDescription from "@/app/components/TaskDescription";
 const COOKIELIST = "tasksListSaved";
 
 const NewTaskModal = ({ open, onClose, onTaskCreate }) => {
-  const [newTask, setNewTask] = useState({title: "",description: "",date: "",status: "Pendente",});
-  const handleCreateTask = () => {onTaskCreate(newTask);onClose();setNewTask({ title: "", description: "", date: "", status: "Pendente" });};
+  const [newTask, setNewTask] = useState({id: null, title: "",description: "",date: "",status: "Pendente",});
+  const handleCreateTask = () => {onTaskCreate(newTask);onClose();setNewTask({ id: null, title: "", description: "", date: "", status: "Pendente" });};
   const handleClose = (event) => {
     if (event !== "backdropClick") {
       onClose();
@@ -179,35 +180,42 @@ const ListaTasks = () => {
   const [openModal, setOpenModal] = useState(false);
   const [detailedTask, setDetailedTask] = useState(null);
 
-  useEffect(() => {
-    const SavedTasksJSON = Cookies.get(COOKIELIST);
-    if (SavedTasksJSON) {
-      const savedTasks = JSON.parse(SavedTasksJSON);
-      setTasks(savedTasks);
-    }
-  }, []);
-
-  const SaveTasksToCookie = (updatedTasks) => {
-    Cookies.set(COOKIELIST, JSON.stringify(updatedTasks));
+ 
+  const TaskCreate = async (newTask) => {
+    try {
+      const response = await axios.post('http://localhost:3000/activity', newTask);
+      const mensagem = response.data.message;
+      const novaID = response.data.id;
+      if (mensagem === "OK"){
+        setNewTask((prevTask) => ({ ...prevTask, id: novaID }));
+        setTasks((prevTasks) => {
+          const updatedTasks = [...prevTasks, newTask];
+        
+          return updatedTasks;
+        });
+      }
+  }catch(error){
+    console.error('A task não foi salva:', error);
+  }
   };
 
-  const TaskCreate = (newTask) => {
-    setTasks((prevTasks) => {
-      const updatedTasks = [...prevTasks, newTask];
-      SaveTasksToCookie(updatedTasks);
-      return updatedTasks;
-    });
-  };
-
-  const StatusChange = (task, newStatus) => {
-    setTasks((prevTasks) => {
-      const updatedTasks = prevTasks.map((t) =>
+  
+  const StatusChange = async (task, newStatus) => {
+    try {
+      
+      
+      const updatedTasks = tasks.map((t) =>
         t === task ? { ...t, status: newStatus } : t
       );
-      SaveTasksToCookie(updatedTasks);
-      return updatedTasks;
-    });
+      const id = task.id;
+      setTasks(updatedTasks);
+  
+      const response = await axios.patch(`http://localhost:3000/activity/${id}`, updatedTasks);
+    } catch (error) {
+      console.error('Erro durante a atualização da tarefa:', error);
+    }
   };
+  
 
   const ChangeRowsPerPage = (event) => {
     setRowsPerPage(+event.target.value);
@@ -223,7 +231,6 @@ const ListaTasks = () => {
     setTasks(updatedTasks);
     setSelectedTask(null);
     setOpenModal(false);
-    SaveTasksToCookie(updatedTasks);
   };
 
   const EditTask = () => {
@@ -283,6 +290,7 @@ const ListaTasks = () => {
                     .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                     .map((task, index) => (
                       <TableRow key={index}>
+                        <TableCell align="center">{task.id}</TableCell>
                         <TableCell align="center">{task.title}</TableCell>
                         <TableCell align="center">{task.date}</TableCell>
                         <TableCell align="center">
