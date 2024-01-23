@@ -1,4 +1,4 @@
-from models.activity import ActivityBase, ActivityUpdate
+from models.activity import ActivityBase, ActivityUpdateAndCreate
 from datetime import date
 from typing import List
 from database.database import DB
@@ -30,13 +30,20 @@ def get_tasks_id(activity_id: int):
     return "Não existe task cadastrada com esse ID"
     
 
-def create_activity(activity: ActivityUpdate):
+def create_activity(activity: ActivityUpdateAndCreate):
     with DB() as db:
-        try:
-            db.execute("INSERT INTO activities (title, description, date, status) VALUES (%s, %s, %s, %s)", [activity.title, activity.description, activity.date, activity.status])
-        except Exception:
-            return False
+        
+        
+            db.execute("INSERT INTO activities (title, description, date, status) VALUES (%s, %s, %s, %s)",
+                       [activity.title, activity.description, activity.date, activity.status])
 
+        
+            db.execute("SELECT id FROM activities WHERE title = %s", [activity.title])
+            result = db.fetchone()
+            title_id =  result
+            print(title_id)
+            return title_id
+       
                
         
         
@@ -44,7 +51,7 @@ def delete_activity(activity_id: int):
     with DB() as db:
         db.execute("DELETE FROM activities WHERE id = %s", [activity_id])
 
-def update_activity(activity_update: ActivityUpdate, activity_id: int):
+def update_activity(activity_update: ActivityUpdateAndCreate, activity_id: int):
     with DB() as db:
         result = get_tasks_id(activity_id)
         if isinstance(result, ActivityBase):

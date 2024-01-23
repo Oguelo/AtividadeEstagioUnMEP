@@ -43,7 +43,15 @@ class DB:
         else:
             raise Exception("Could not connect to DB")
 
-    def __exit__(self, exc_type, exc_value, exc_tb):
-        self.cursor.close()
-        self.db.commit()
-        self.db.close()
+    def __exit__(self, exc_type, exc_value, traceback):
+        if self.db:
+            try:
+                if self.cursor:
+              
+                    self.cursor.fetchall()
+                    self.cursor.close()
+                self.db.commit()
+            except Exception as commit_error:
+                print(f"Error during commit: {commit_error}")
+            finally:
+                self.db.close()
