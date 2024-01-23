@@ -108,20 +108,26 @@ const ListaTasks = () => {
       setTasks(updatedTasks);
   
       const response = await axios.patch(`http://localhost:3000/activity/${id}`, editTask);
+  
     } catch (error) {
       console.error('Erro durante a atualização da tarefa:', error);
     }
     setOpenEditModal(false);
   };
   
-  
-  const DeleteTask = (taskToDelete) => {
-    const updatedTasks = tasks.filter((task) => task !== taskToDelete);
-    setTasks(updatedTasks);
-    setSelectedTask(null);
-    setOpenModal(false);
-    SaveTasksToCookie(updatedTasks);
+  const DeleteTask = async (taskToDelete) => {
+    try {
+      const updatedTasks = tasks.filter((task) => task !== taskToDelete);
+      setTasks(updatedTasks);
+      setSelectedTask(null);
+      setOpenModal(false);
+      const id = taskToDelete.id;
+      await axios.delete(`http://localhost:3000/activity/${id}`);
+    } catch (error) {
+      console.error('Erro durante a exclusão da tarefa:', error);
+    }
   };
+  
 
   const OpenEditModal = (task) => {
     setEditedTask(task);
