@@ -1,12 +1,12 @@
 from fastapi import APIRouter,HTTPException,status
-from models.activity import ActivityUpdate, ActivityBase
+from models.activity import ActivityUpdateAndCreate,ActivityBase
 from services import servicesTasks
 
 router = APIRouter(prefix="/activity", tags=["Activity"])
 
 
 @router.post("/", description="Create an activity")
-def create_activity(new_activity: ActivityUpdate):
+def create_activity(new_activity: ActivityUpdateAndCreate):
     id_generate = servicesTasks.create_activity(new_activity)
     if id_generate:
          return {"message": "OK", "id": id_generate, "title": new_activity.title, "description": new_activity.description, "date": new_activity.date, "status": new_activity.status}
@@ -26,7 +26,7 @@ def get_activity(id: int):
     return{"message": result}
 
 @router.patch("/{id}", description="Update an activity")
-def update_activity(activity_update: ActivityUpdate, id: int):
+def update_activity(activity_update: ActivityUpdateAndCreate, id: int):
     result = servicesTasks.update_activity(activity_update, id)
     if isinstance(result, ActivityBase):
         return result

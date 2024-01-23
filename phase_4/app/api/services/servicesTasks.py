@@ -34,9 +34,6 @@ def create_activity(activity: ActivityUpdate):
     with DB() as db:
         try:
             db.execute("INSERT INTO activities (title, description, date, status) VALUES (%s, %s, %s, %s)", [activity.title, activity.description, activity.date, activity.status])
-            result = db.execute("SELECT LAST_INSERT_ID()")
-            generated_id = result.fetchone()[0]
-            return generated_id
         except Exception:
             return False
 

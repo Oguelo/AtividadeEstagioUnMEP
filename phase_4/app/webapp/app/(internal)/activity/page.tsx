@@ -59,21 +59,34 @@ const ListaTasks = () => {
     getData();
   }, []);
   
+  const TaskCreate = (newTask) => {
+    const { title, description, date, status } = newTask;
+    const newTaskWithoutId = { title, description, date, status };
+    setTasks((prevTasks) => [...prevTasks, newTaskWithoutId]);
+  
+   
+    axios.post('http://localhost:3000/activity', newTaskWithoutId)
+      .then((response) => {
+        const mensagem = response.data.message;
+        
+        if (mensagem === "OK") {
+ 
+          const { id } = response.data;
+          const newTaskWithId = { id, ...newTaskWithoutId };
+  
 
-  const TaskCreate = async (newTask) => {
-    try {
-      const response = await axios.post('http://localhost:3000/activity', newTask);
-      const mensagem = response.data.message;
-      
-      if (mensagem === "OK") {
-        const { id, title, description, date, status } = response.data;
-        const newTaskWithId = { id, title, description, date, status };
-        setTasks((prevTasks) => [...prevTasks, newTaskWithId]);
-      }
-    } catch (error) {
-      console.error('A task não foi salva:', error);
-    }
+          setTasks((prevTasks) => {
+           
+            const updatedTasks = prevTasks.map((task) => (task === newTaskWithoutId ? newTaskWithId : task));
+            return updatedTasks;
+          });
+        }
+      })
+      .catch((error) => {
+        console.error('A task não foi salva:', error);
+      });
   };
+  
   
 
   const StatusChange = async (task, newStatus) => {
