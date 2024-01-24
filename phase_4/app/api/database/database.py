@@ -12,7 +12,7 @@ settings = {
 
 
 def connect():
-    # Estabelecendo a conexão
+  
     try:
         conn = mysql.connector.connect(**settings)
 
@@ -20,12 +20,12 @@ def connect():
             print("Conexão ao banco de dados realizada com sucesso!")
             cursor = conn.cursor()
 
-            # Exemplo: Executando uma consulta
+       
             cursor.execute("SELECT VERSION()")
             version = cursor.fetchone()
             print(f"Versão do MySQL: {version}")
 
-            # Fechar o cursor e a conexão
+            
             cursor.close()
             conn.close()
             return version
@@ -43,7 +43,15 @@ class DB:
         else:
             raise Exception("Could not connect to DB")
 
-    def __exit__(self, exc_type, exc_value, exc_tb):
-        self.cursor.close()
-        self.db.commit()
-        self.db.close()
+    def __exit__(self, exc_type, exc_value, traceback):
+        if self.db:
+            try:
+                if self.cursor:
+              
+                    self.cursor.fetchall()
+                    self.cursor.close()
+                self.db.commit()
+            except Exception as commit_error:
+                print(f"Error during commit: {commit_error}")
+            finally:
+                self.db.close()

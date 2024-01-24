@@ -1,16 +1,9 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import Cookies from "js-cookie";
 import {
   Button,
-  styled,
-  Dialog,
-  TextField,
   Typography,
-  DialogTitle,
-  DialogContent,
   DialogActions,
-  Stack,
   Select,
   MenuItem,
   Table,
@@ -26,7 +19,6 @@ import {
   DeleteOutlined as DeleteOutlinedIcon,
   EditOutlined as EditOutlinedIcon,
   RemoveRedEyeOutlined as RemoveRedEyeOutlinedIcon,
-  Task,
 } from "@mui/icons-material";
 import Grid from "@mui/material/Unstable_Grid2";
 import Divider from "@/app/components/Divider"; // Certifique-se de fornecer o caminho correto
@@ -37,9 +29,7 @@ import {
   TaskEdit,
   NewTaskModal,
 } from "@/app/components/TaskModal";
-
-const COOKIELIST = "tasksListSaved";
-
+import { addDays, format } from "date-fns";
 const ListaTasks = () => {
   const [selectedTask, setSelectedTask] = useState(null);
   const [tasks, setTasks] = useState([]);
@@ -51,34 +41,81 @@ const ListaTasks = () => {
   const [detailedTask, setDetailedTask] = useState(null);
   const [editedTask, setEditedTask] = useState(null);
 
-  useEffect(() => {
-    const SavedTasksJSON = Cookies.get(COOKIELIST);
-    if (SavedTasksJSON) {
-      const savedTasks = JSON.parse(SavedTasksJSON);
-      setTasks(savedTasks);
+  const fetchTasks = async () => {
+    try {
+      const response = await fetch("http://localhost:3000/activity/all");
+
+      if (!response.ok) {
+        throw new Error(`Erro na requisição: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      if (Array.isArray(data)) {
+        const updatedTasks = data.map((task) => ({
+          id: parseInt(task.id),
+          title: task.title,
+          description: task.description,
+          date: task.date,
+          status: task.status,
+        }));
+
+        setTasks(updatedTasks);
+      } else {
+        console.error(
+          "A resposta do servidor não contém um array de tarefas válido."
+        );
+      }
+    } catch (error) {
+      console.error("Erro ao carregar a lista de tarefas:", error.message);
     }
+  };
+
+  useEffect(() => {
+    fetchTasks();
   }, []);
 
-  const SaveTasksToCookie = (updatedTasks) => {
-    Cookies.set(COOKIELIST, JSON.stringify(updatedTasks));
+  const TaskCreate = async (newTask) => {
+    const { title, description, date, status } = newTask;
+    const newTaskWithoutId = { title, description, date, status };
+
+    try {
+      const response = await fetch("http://localhost:3000/activity", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(newTaskWithoutId),
+      });
+
+      const responseData = await response.json();
+      const id = parseInt(responseData.id);
+
+      setTasks((prevTasks) => [...prevTasks, { id, ...newTaskWithoutId }]);
+    } catch (error) {
+      console.error("Erro na requisição:", error);
+    }
   };
 
-  const TaskCreate = (newTask) => {
-    setTasks((prevTasks) => {
-      const updatedTasks = [...prevTasks, newTask];
-      SaveTasksToCookie(updatedTasks);
-      return updatedTasks;
-    });
-  };
-
-  const StatusChange = (task, newStatus) => {
-    setTasks((prevTasks) => {
-      const updatedTasks = prevTasks.map((t) =>
-        t === task ? { ...t, status: newStatus } : t
+  const StatusChange = async (task, newStatus) => {
+    const id = parseInt(task.id);
+    try {
+      const updatedTask = { ...task, status: newStatus };
+      const updatedTasks = tasks.map((t) =>
+        t.id === task.id ? updatedTask : t
       );
-      SaveTasksToCookie(updatedTasks);
-      return updatedTasks;
-    });
+      setTasks(updatedTasks);
+
+      await fetch(`http://localhost:3000/activity/status/${id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ status: newStatus }),
+      });
+    } catch (error) {
+      console.error("Erro durante a atualização da tarefa:", error);
+    }
   };
 
   const ChangeRowsPerPage = (event) => {
@@ -89,23 +126,54 @@ const ListaTasks = () => {
   const ChangePage = (_, newPage) => {
     setPage(newPage);
   };
-  const EditTask = (editTask) => {
-    setTasks((prevTasks) => {
-      const updatedTasks = prevTasks.map((task) =>
-        task !== editedTask ? task : { ...task, ...editTask }
+
+  const EditTask = async (editTask) => {
+    const id = parseInt(editTask.id);
+    try {
+      const updatedFields = {
+        title: editTask.title,
+        description: editTask.description,
+        date: editTask.date,
+        status: editTask.status,
+      };
+
+      const response = await fetch(`http://localhost:3000/activity/${id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(updatedFields),
+      });
+
+      const updatedTasks = tasks.map((t) =>
+        t.id === id ? { ...t, ...updatedFields } : t
       );
-      SaveTasksToCookie(updatedTasks);
-      return updatedTasks;
-    });
+
+      setTasks(updatedTasks);
+    } catch (error) {
+      console.error("Erro durante a atualização da tarefa:", error);
+    }
     setOpenEditModal(false);
   };
-  
-  const DeleteTask = (taskToDelete) => {
-    const updatedTasks = tasks.filter((task) => task !== taskToDelete);
-    setTasks(updatedTasks);
-    setSelectedTask(null);
-    setOpenModal(false);
-    SaveTasksToCookie(updatedTasks);
+
+  const DeleteTask = async (taskToDelete) => {
+    try {
+      const id = taskToDelete.id;
+      await fetch(`http://localhost:3000/activity/${id}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: "",
+      });
+
+      const updatedTasks = tasks.filter((task) => task.id !== id);
+      setTasks(updatedTasks);
+      setSelectedTask(null);
+      setOpenModal(false);
+    } catch (error) {
+      console.error("Erro durante a exclusão da tarefa:", error);
+    }
   };
 
   const OpenEditModal = (task) => {
@@ -161,11 +229,17 @@ const ListaTasks = () => {
                 </TableHead>
                 <TableBody>
                   {tasks
+                    .slice()
+                    .reverse()
                     .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                    .map((task, index) => (
-                      <TableRow key={index}>
+                    .map((task) => (
+                      <TableRow key={task.id}>
+                       
                         <TableCell align="center">{task.title}</TableCell>
-                        <TableCell align="center">{task.date}</TableCell>
+                        <TableCell align="center">
+                        {format(addDays(new Date(task.date), 1), "dd/MM/yyyy")}
+                        </TableCell>
+
                         <TableCell align="center">
                           <Select
                             value={task.status}
@@ -244,6 +318,7 @@ const ListaTasks = () => {
         onClose={() => {
           setOpen(false);
         }}
+        tasksList={tasks}
         onTaskCreate={TaskCreate}
       />
       <TaskDescription
@@ -255,7 +330,7 @@ const ListaTasks = () => {
         open={openEditModal}
         onClose={() => setOpenEditModal(false)}
         editedTask={editedTask}
-        onEditTask={EditTask} 
+        onEditTask={EditTask}
       />
     </Grid>
   );

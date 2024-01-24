@@ -1,12 +1,12 @@
-from models.activity import ActivityBase, ActivityUpdate
+from datetime import date
+from models.activity import ActivityBase, ActivityUpdateAndCreate, ActivityStatusUpdate
 from datetime import date
 from typing import List
 from database.database import DB
 
 
 def convertDTOFront(item: dict) -> ActivityBase:
-    return ActivityBase(**item)
-    
+     return ActivityBase(**item)
     
 def get_tasks() -> List[ActivityBase]:
     list_tasks = []
@@ -30,16 +30,18 @@ def get_tasks_id(activity_id: int):
     return "Não existe task cadastrada com esse ID"
     
 
-def create_activity(activity: ActivityUpdate):
+def create_activity(activity: ActivityUpdateAndCreate):
     with DB() as db:
-        try:
-            db.execute("INSERT INTO activities (title, description, date, status) VALUES (%s, %s, %s, %s)", [activity.title, activity.description, activity.date, activity.status])
-            result = db.execute("SELECT LAST_INSERT_ID()")
-            generated_id = result.fetchone()[0]
-            return generated_id
-        except Exception:
-            return False
+       
+        db.execute("INSERT INTO activities (title, description, date, status) VALUES (%s, %s, %s, %s)",
+                   [activity.title, activity.description, activity.date, activity.status])
 
+        
+        last_insert_id = db.lastrowid
+        return last_insert_id
+    
+
+       
                
         
         
@@ -47,13 +49,16 @@ def delete_activity(activity_id: int):
     with DB() as db:
         db.execute("DELETE FROM activities WHERE id = %s", [activity_id])
 
-def update_activity(activity_update: ActivityUpdate, activity_id: int):
+def update_activity(activity_update: ActivityUpdateAndCreate, activity_id: int):
     with DB() as db:
         result = get_tasks_id(activity_id)
         if isinstance(result, ActivityBase):
             db.execute("UPDATE activities SET title = %s, description = %s, date = %s, status = %s WHERE id = %s", (activity_update.title, activity_update.description, activity_update.date, activity_update.status, activity_id))
-            task_update = get_tasks_id(activity_id)
-            if task_update == result:
-                return "Task atualizada"
+            return "Task atualizada"
         return "Task não alterada"    
 
+def update_activityStatus(activity_id: int, activityNewStatus: ActivityStatusUpdate):
+    with DB() as db:
+       
+       db.execute("UPDATE activities SET status = %s WHERE id = %s", (activityNewStatus.status,activity_id))
+       return "Activity updated successfully"    
