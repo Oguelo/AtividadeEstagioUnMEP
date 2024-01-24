@@ -45,44 +45,61 @@ const ListaTasks = () => {
   const [editedTask, setEditedTask] = useState(null);
   const [coringuei, setCoringuei] = useState(null);
 
-  const TaskCreate = async (newTask) => {
+  const TaskCreate = async (newTask: {
+    title: string;
+    description: string;
+    date: string;
+    status: string;
+  }) => {
     const { title, description, date, status } = newTask;
     const newTaskWithoutId = { title, description, date, status };
-    setTasks((prevTasks) => [...prevTasks, newTaskWithoutId]);
-    
-    const response = await fetch("http://localhost:3000/activity", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(newTaskWithoutId),
-    });
 
-    if (!response.ok) {
-      throw new Error(`Falha na requisição: ${response.statusText}`);
+    try {
+      const response = await fetch("http://localhost:3000/activity", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(newTaskWithoutId),
+      });
+
+      const responseData = await response.json(); 
+      console.log(responseData);
+      const id = parseInt(responseData.id);
+      const title = responseData.title;
+      const description = responseData.description;
+      const date = responseData.date;
+      const status = responseData.status;
+
+      setTasks((prevTasks) => [
+        ...prevTasks,
+        { id, title, description, date, status },
+      ]);
+    } catch (error) {
+      console.error("Erro na requisição:", error);
     }
-
-    const data = await response.json();
-    setCoringuei(data); 
   };
 
   const StatusChange = async (task, newStatus) => {
+    const id = parseInt(task.id);
     try {
-      const updatedTasks = tasks.map((t) =>
-        t === task ? { ...t, status: newStatus } : t
-      );
-      const id = task.id;
-      setTasks(updatedTasks);
-
-      const response = await axios.patch(
-        `http://localhost:3000/activity/${id}`,
-        { ...task, status: newStatus }
-      );
+        const updatedTask = { ...task, status: newStatus };
+        const updatedTasks = tasks.map((t) => (t.id === task.id ? updatedTask : t));
+        setTasks(updatedTasks); 
+        const response = await fetch(`http://localhost:3000/activity/status/${id}`, {
+            method: "PATCH",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ status: newStatus }), 
+        });
+        
     } catch (error) {
-      console.error("Erro durante a atualização da tarefa:", error);
+        setTasks(task);
+        console.error("Erro durante a atualização da tarefa:", error);
     }
-  };
-
+};
+  
   const ChangeRowsPerPage = (event) => {
     setRowsPerPage(+event.target.value);
     setPage(0);
@@ -92,17 +109,22 @@ const ListaTasks = () => {
     setPage(newPage);
   };
   const EditTask = async (editTask) => {
+    const idTo = editTask.id;
+    const {id, title, description, date, status } = editTask;
+    const UpdateTask = {id, title, description, date, status };
     try {
-      const updatedTasks = tasks.map((t) =>
+      const response = await fetch(`http://localhost:3000/activity/${idTo}`, {
+            method: "PATCH",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(UpdateTask), 
+        });
+        const updatedTasks = tasks.map((t) =>
         t === editTask ? { ...t, ...editTask } : t
       );
-      const id = editTask.id;
+     
       setTasks(updatedTasks);
-
-      const response = await axios.patch(
-        `http://localhost:3000/activity/${id}`,
-        editTask
-      );
     } catch (error) {
       console.error("Erro durante a atualização da tarefa:", error);
     }
@@ -115,8 +137,15 @@ const ListaTasks = () => {
       setTasks(updatedTasks);
       setSelectedTask(null);
       setOpenModal(false);
-      const id = taskToDelete.id;
-      await axios.delete(`http://localhost:3000/activity/${id}`);
+      const id = parseInt(taskToDelete.id);
+      const response = await fetch(`http://localhost:3000/activity/${id}`, {
+            method: "DELETE",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: '',
+        });
+      
     } catch (error) {
       console.error("Erro durante a exclusão da tarefa:", error);
     }
@@ -167,7 +196,8 @@ const ListaTasks = () => {
               <Table stickyHeader size="medium" aria-label="sticky table">
                 <TableHead>
                   <TableRow>
-                    <TableCell align="center">{coringuei}</TableCell>
+                    <TableCell align="center">ID</TableCell>
+                    <TableCell align="center">Titulo</TableCell>
                     <TableCell align="center">Data</TableCell>
                     <TableCell align="center">Status</TableCell>
                     <TableCell align="center">Ações</TableCell>
@@ -178,6 +208,7 @@ const ListaTasks = () => {
                     .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                     .map((task, index) => (
                       <TableRow key={index}>
+                        <TableCell align="center">{[task.id]}</TableCell>
                         <TableCell align="center">{task.title}</TableCell>
                         <TableCell align="center">{task.date}</TableCell>
                         <TableCell align="center">

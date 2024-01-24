@@ -12,7 +12,7 @@ settings = {
 
 
 def connect():
-    # Estabelecendo a conexão
+  
     try:
         conn = mysql.connector.connect(**settings)
 
@@ -20,12 +20,12 @@ def connect():
             print("Conexão ao banco de dados realizada com sucesso!")
             cursor = conn.cursor()
 
-            # Exemplo: Executando uma consulta
+       
             cursor.execute("SELECT VERSION()")
             version = cursor.fetchone()
             print(f"Versão do MySQL: {version}")
 
-            # Fechar o cursor e a conexão
+            
             cursor.close()
             conn.close()
             return version
