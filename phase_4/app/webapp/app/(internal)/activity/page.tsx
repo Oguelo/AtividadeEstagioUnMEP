@@ -1,6 +1,5 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import Cookies from "js-cookie";
 import {
   Button,
   Typography,
@@ -44,50 +43,28 @@ const ListaTasks = () => {
   const [openEditModal, setOpenEditModal] = useState(false);
   const [detailedTask, setDetailedTask] = useState(null);
   const [editedTask, setEditedTask] = useState(null);
-  useEffect(() => {
-    const getData = async () => {
-      try {
-        const response = await axios.get('http://localhost:3000/activity/all');
-        const tasksList = response.data;
-        console.log(tasksList);
-        setTasks(tasksList);
-      } catch (error) {
-        console.error('Erro durante a requisição GET:', error);
-      }
-    };
-  
-    getData();
-  }, []);
-  
-  const TaskCreate = (newTask) => {
+  const [coringuei, setCoringuei] = useState(null);
+
+  const TaskCreate = async (newTask) => {
     const { title, description, date, status } = newTask;
     const newTaskWithoutId = { title, description, date, status };
     setTasks((prevTasks) => [...prevTasks, newTaskWithoutId]);
-  
-   
-    axios.post('http://localhost:3000/activity', newTaskWithoutId)
-      .then((response) => {
-        const mensagem = response.data.message;
-        
-        if (mensagem === "OK") {
- 
-          const { id } = response.data;
-          const newTaskWithId = { id, ...newTaskWithoutId };
-  
+    
+    const response = await fetch("http://localhost:3000/activity", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(newTaskWithoutId),
+    });
 
-          setTasks((prevTasks) => {
-           
-            const updatedTasks = prevTasks.map((task) => (task === newTaskWithoutId ? newTaskWithId : task));
-            return updatedTasks;
-          });
-        }
-      })
-      .catch((error) => {
-        console.error('A task não foi salva:', error);
-      });
+    if (!response.ok) {
+      throw new Error(`Falha na requisição: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    setCoringuei(data); 
   };
-  
-  
 
   const StatusChange = async (task, newStatus) => {
     try {
@@ -96,13 +73,15 @@ const ListaTasks = () => {
       );
       const id = task.id;
       setTasks(updatedTasks);
-  
-      const response = await axios.patch(`http://localhost:3000/activity/${id}`, { ...task, status: newStatus });
+
+      const response = await axios.patch(
+        `http://localhost:3000/activity/${id}`,
+        { ...task, status: newStatus }
+      );
     } catch (error) {
-      console.error('Erro durante a atualização da tarefa:', error);
+      console.error("Erro durante a atualização da tarefa:", error);
     }
   };
-  
 
   const ChangeRowsPerPage = (event) => {
     setRowsPerPage(+event.target.value);
@@ -119,15 +98,17 @@ const ListaTasks = () => {
       );
       const id = editTask.id;
       setTasks(updatedTasks);
-  
-      const response = await axios.patch(`http://localhost:3000/activity/${id}`, editTask);
-  
+
+      const response = await axios.patch(
+        `http://localhost:3000/activity/${id}`,
+        editTask
+      );
     } catch (error) {
-      console.error('Erro durante a atualização da tarefa:', error);
+      console.error("Erro durante a atualização da tarefa:", error);
     }
     setOpenEditModal(false);
   };
-  
+
   const DeleteTask = async (taskToDelete) => {
     try {
       const updatedTasks = tasks.filter((task) => task !== taskToDelete);
@@ -137,10 +118,9 @@ const ListaTasks = () => {
       const id = taskToDelete.id;
       await axios.delete(`http://localhost:3000/activity/${id}`);
     } catch (error) {
-      console.error('Erro durante a exclusão da tarefa:', error);
+      console.error("Erro durante a exclusão da tarefa:", error);
     }
   };
-  
 
   const OpenEditModal = (task) => {
     setEditedTask(task);
@@ -187,7 +167,7 @@ const ListaTasks = () => {
               <Table stickyHeader size="medium" aria-label="sticky table">
                 <TableHead>
                   <TableRow>
-                    <TableCell align="center">Titulo</TableCell>
+                    <TableCell align="center">{coringuei}</TableCell>
                     <TableCell align="center">Data</TableCell>
                     <TableCell align="center">Status</TableCell>
                     <TableCell align="center">Ações</TableCell>
@@ -289,7 +269,7 @@ const ListaTasks = () => {
         open={openEditModal}
         onClose={() => setOpenEditModal(false)}
         editedTask={editedTask}
-        onEditTask={EditTask} 
+        onEditTask={EditTask}
       />
     </Grid>
   );
