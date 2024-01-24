@@ -7,10 +7,6 @@ from database.database import DB
 
 def convertDTOFront(item: dict) -> ActivityBase:
      return ActivityBase(**item)
-def formatBR(dateUn: str):
-    data_recebida = date.fromisoformat(dateUn)
-    data_formatada = data_recebida.strftime("%d/%m/%Y")
-    return data_formatada
     
 def get_tasks() -> List[ActivityBase]:
     list_tasks = []
@@ -36,13 +32,15 @@ def get_tasks_id(activity_id: int):
 
 def create_activity(activity: ActivityUpdateAndCreate):
     with DB() as db:
-            db.execute("INSERT INTO activities (title, description, date, status) VALUES (%s, %s, %s, %s)",
-                       [activity.title, activity.description, activity.date, activity.status])
+       
+        db.execute("INSERT INTO activities (title, description, date, status) VALUES (%s, %s, %s, %s)",
+                   [activity.title, activity.description, activity.date, activity.status])
 
-            db.execute("SELECT id FROM activities WHERE title = %s", [activity.title])
-            result = db.fetchone()
         
-            return result['id']
+        last_insert_id = db.lastrowid
+        return last_insert_id
+    
+
        
                
         

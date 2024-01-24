@@ -29,7 +29,7 @@ import {
   TaskEdit,
   NewTaskModal,
 } from "@/app/components/TaskModal";
-
+import { addDays, format } from "date-fns";
 const ListaTasks = () => {
   const [selectedTask, setSelectedTask] = useState(null);
   const [tasks, setTasks] = useState([]);
@@ -40,8 +40,6 @@ const ListaTasks = () => {
   const [openEditModal, setOpenEditModal] = useState(false);
   const [detailedTask, setDetailedTask] = useState(null);
   const [editedTask, setEditedTask] = useState(null);
-  const [coringuei, setCoringuei] = useState(null);
-
 
   const fetchTasks = async () => {
     try {
@@ -54,7 +52,7 @@ const ListaTasks = () => {
       const data = await response.json();
 
       if (Array.isArray(data)) {
-        const updatedTasks = data.map(task => ({
+        const updatedTasks = data.map((task) => ({
           id: parseInt(task.id),
           title: task.title,
           description: task.description,
@@ -62,9 +60,11 @@ const ListaTasks = () => {
           status: task.status,
         }));
 
-        setTasks(prevTasks => [...prevTasks, ...updatedTasks]);
+        setTasks(updatedTasks);
       } else {
-        console.error("A resposta do servidor não contém um array de tarefas válido.");
+        console.error(
+          "A resposta do servidor não contém um array de tarefas válido."
+        );
       }
     } catch (error) {
       console.error("Erro ao carregar a lista de tarefas:", error.message);
@@ -73,7 +73,7 @@ const ListaTasks = () => {
 
   useEffect(() => {
     fetchTasks();
-  }, []); 
+  }, []);
 
   const TaskCreate = async (newTask) => {
     const { title, description, date, status } = newTask;
@@ -91,10 +91,7 @@ const ListaTasks = () => {
       const responseData = await response.json();
       const id = parseInt(responseData.id);
 
-      setTasks((prevTasks) => [
-        ...prevTasks,
-        { id, ...newTaskWithoutId },
-      ]);
+      setTasks((prevTasks) => [...prevTasks, { id, ...newTaskWithoutId }]);
     } catch (error) {
       console.error("Erro na requisição:", error);
     }
@@ -133,15 +130,23 @@ const ListaTasks = () => {
   const EditTask = async (editTask) => {
     const id = parseInt(editTask.id);
     try {
+      const updatedFields = {
+        title: editTask.title,
+        description: editTask.description,
+        date: editTask.date,
+        status: editTask.status,
+      };
+
       const response = await fetch(`http://localhost:3000/activity/${id}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(editTask),
+        body: JSON.stringify(updatedFields),
       });
+
       const updatedTasks = tasks.map((t) =>
-        t.id === id ? { ...t, ...editTask } : t
+        t.id === id ? { ...t, ...updatedFields } : t
       );
 
       setTasks(updatedTasks);
@@ -153,7 +158,7 @@ const ListaTasks = () => {
 
   const DeleteTask = async (taskToDelete) => {
     try {
-      const id = parseInt(taskToDelete.id);
+      const id = taskToDelete.id;
       await fetch(`http://localhost:3000/activity/${id}`, {
         method: "DELETE",
         headers: {
@@ -216,7 +221,6 @@ const ListaTasks = () => {
               <Table stickyHeader size="medium" aria-label="sticky table">
                 <TableHead>
                   <TableRow>
-                    <TableCell align="center">ID</TableCell>
                     <TableCell align="center">Titulo</TableCell>
                     <TableCell align="center">Data</TableCell>
                     <TableCell align="center">Status</TableCell>
@@ -225,12 +229,17 @@ const ListaTasks = () => {
                 </TableHead>
                 <TableBody>
                   {tasks
+                    .slice()
+                    .reverse()
                     .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                     .map((task) => (
                       <TableRow key={task.id}>
-                        <TableCell align="center">{task.id}</TableCell>
+                       
                         <TableCell align="center">{task.title}</TableCell>
-                        <TableCell align="center">{task.date}</TableCell>
+                        <TableCell align="center">
+                        {format(addDays(new Date(task.date), 1), "dd/MM/yyyy")}
+                        </TableCell>
+
                         <TableCell align="center">
                           <Select
                             value={task.status}

@@ -9,6 +9,7 @@ import {
   Select,
   MenuItem,
   TextareaAutosize,
+  FormHelperText,
 } from "@mui/material";
 import Grid from "@mui/material/Unstable_Grid2";
 import { theme } from "@/app/theme";
@@ -18,7 +19,12 @@ import {
   TaskStatusColors,
 } from "@/app/theme";
 
+const isFormValid = (newTask) => {
+
+  return newTask.title !== "" && newTask.description !== "" && newTask.date !== "" ;
+};
 const NewTaskModal = ({ open, onClose,tasksList, onTaskCreate}) => {
+  const [newTaskError, setNewTaskError] = useState('');
   const [newTask, setNewTask] = useState({
     id: null,
     title: "",
@@ -26,18 +32,33 @@ const NewTaskModal = ({ open, onClose,tasksList, onTaskCreate}) => {
     date: "",
     status: "Pendente",
   });
+  function duplicateTask(newTask, tasksList, setNewTaskError) {
+    const existingTasks = tasksList.map((task) => ({
+      title: task.title.toLowerCase(),
+      date: task.date.toLowerCase(),
+    }));
+  
+    const newTaskTitle = newTask.title.toLowerCase();
+    const newTaskDate = newTask.date.toLowerCase();
+  
+    if (existingTasks.some((task) => task.title === newTaskTitle && task.date === newTaskDate)) {
+      return 'Já existe uma tarefa igual cadastrada no mesmo dia, escolha outro dia';
+    }
+  
+    return null;
+  }
+  
   
   const handleCreateTask = () => {
-    const taskAlreadyExists = tasksList.some(
-      (existingTask) =>
-        existingTask.title === newTask.title && existingTask.date === newTask.date
-    );
-
-    if (taskAlreadyExists) {
-      setShowTitleExistsAlert(true);
+    const duplicateError = duplicateTask(newTask, tasksList);
+  
+    if (duplicateError) {
+      setNewTaskError(duplicateError);
       return;
     }
-
+  
+    setNewTaskError("");
+  
     onTaskCreate(newTask);
     onClose();
     setNewTask({
@@ -48,23 +69,23 @@ const NewTaskModal = ({ open, onClose,tasksList, onTaskCreate}) => {
       status: "Pendente",
     });
   };
-  const isFormValid = () => {
-
-    return newTask.title !== "" && newTask.description !== "" && newTask.date !== "";
-  };
+  
+  
   const handleClose = (event) => {
     if (event !== "backdropClick") {
       onClose();
-      setShowTitleExistsAlert(false);
       setNewTask({
         id: null,
         title: "",
         description: "",
         date: "",
         status: "Pendente",
+        
       });
+      setNewTaskError("");
     }
   };
+  
   return (
     <BootstrapDialog
       open={open}
@@ -147,6 +168,7 @@ const NewTaskModal = ({ open, onClose,tasksList, onTaskCreate}) => {
               InputLabelProps={{ shrink: true }}
               onChange={(e) => setNewTask({ ...newTask, date: e.target.value })}
             />
+            {newTaskError && <FormHelperText error>{newTaskError}</FormHelperText>}
           </Grid>
         </Grid>
       </DialogContent>
@@ -163,7 +185,7 @@ const NewTaskModal = ({ open, onClose,tasksList, onTaskCreate}) => {
             sx={{ backgroundColor: theme.palette.success.main }}
             variant="contained"
             onClick={handleCreateTask}
-            disabled={!isFormValid()}
+            disabled={!isFormValid(newTask) }
           >
             Criar
           </Button>
@@ -217,18 +239,22 @@ const TaskDescription = ({ open, onClose, detailedTask }) => {
 
 const TaskEdit = ({ open, onClose, editedTask ,  onEditTask}) => {
   const [editTask, setEditTask] = useState({
-    title: editedTask?.title || "",
-    description: editedTask?.description || "",
-    date: editedTask?.date || "",
+    id: editedTask?.id ,
+    title: editedTask?.title ,
+    description: editedTask?.description ,
+    date: editedTask?.date ,
+    status: editedTask?.status ,
   });
   const handleClose = (event) => {
     if (event !== "backdropClick") {
       onClose();
       setEditTask((prevEditTask) => ({
         ...prevEditTask,
+        id: editedTask.id,
         title: editedTask.title,
         description: editedTask.description,
         date: editedTask.date,
+        status: editedTask.status,
       }));
     }
   };
@@ -237,19 +263,24 @@ const TaskEdit = ({ open, onClose, editedTask ,  onEditTask}) => {
     onClose();
     setEditTask((prevEditTask) => ({
       ...prevEditTask,
+      id: editedTask.id,
       title: editTask.title,
       description: editTask.description,
       date: editTask.date,
+      status: editedTask.status,
     }));
     onEditTask(editTask);
   };
+  
 
   useEffect(() => {
     if (editedTask) {
       setEditTask({
+        id: editedTask.id || "",
         title: editedTask.title || "",
         description: editedTask.description || "",
         date: editedTask.date || "",
+        status: editedTask.status|| "",
       });
     }
   }, [editedTask]);
@@ -312,6 +343,7 @@ const TaskEdit = ({ open, onClose, editedTask ,  onEditTask}) => {
           onClick={() => handleEditTask()}
           variant="contained"
           color="success"
+          disabled={!isFormValid(editTask)}
         >
           Salvar
         </Button>
@@ -330,3 +362,5 @@ const TaskEdit = ({ open, onClose, editedTask ,  onEditTask}) => {
 
 export { TaskDescription, TaskEdit, NewTaskModal };
   
+  
+
