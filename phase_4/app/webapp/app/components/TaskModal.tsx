@@ -1,4 +1,4 @@
-import React, { useEffect, useState, ChangeEvent } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Button,
   TextField,
@@ -12,12 +12,12 @@ import {
   FormHelperText,
 } from "@mui/material";
 import Grid from "@mui/material/Unstable_Grid2";
-import { theme } from "@/app/theme";
+import { theme } from "@/app/styles/theme";
 import {
   BootstrapDialog,
   StyledDialogTitle,
   TaskStatusColors,
-} from "@/app/theme";
+} from "@/app/styles/theme";
 import { Task, TaskStatus,TaskDescriptionProps, TaskEditProps, NewTaskModalProps } from "@/app/components/Task";
 
 
