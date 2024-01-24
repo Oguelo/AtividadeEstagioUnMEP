@@ -29,9 +29,6 @@ import {
   TaskEdit,
   NewTaskModal,
 } from "@/app/components/TaskModal";
-import axios from "axios";
-
-const COOKIELIST = "tasksListSaved";
 
 const ListaTasks = () => {
   const [selectedTask, setSelectedTask] = useState(null);
@@ -45,12 +42,40 @@ const ListaTasks = () => {
   const [editedTask, setEditedTask] = useState(null);
   const [coringuei, setCoringuei] = useState(null);
 
-  const TaskCreate = async (newTask: {
-    title: string;
-    description: string;
-    date: string;
-    status: string;
-  }) => {
+
+  const fetchTasks = async () => {
+    try {
+      const response = await fetch("http://localhost:3000/activity/all");
+
+      if (!response.ok) {
+        throw new Error(`Erro na requisição: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      if (Array.isArray(data)) {
+        const updatedTasks = data.map(task => ({
+          id: parseInt(task.id),
+          title: task.title,
+          description: task.description,
+          date: task.date,
+          status: task.status,
+        }));
+
+        setTasks(prevTasks => [...prevTasks, ...updatedTasks]);
+      } else {
+        console.error("A resposta do servidor não contém um array de tarefas válido.");
+      }
+    } catch (error) {
+      console.error("Erro ao carregar a lista de tarefas:", error.message);
+    }
+  };
+
+  useEffect(() => {
+    fetchTasks();
+  }, []); 
+
+  const TaskCreate = async (newTask) => {
     const { title, description, date, status } = newTask;
     const newTaskWithoutId = { title, description, date, status };
 
@@ -63,17 +88,12 @@ const ListaTasks = () => {
         body: JSON.stringify(newTaskWithoutId),
       });
 
-      const responseData = await response.json(); 
-      console.log(responseData);
+      const responseData = await response.json();
       const id = parseInt(responseData.id);
-      const title = responseData.title;
-      const description = responseData.description;
-      const date = responseData.date;
-      const status = responseData.status;
 
       setTasks((prevTasks) => [
         ...prevTasks,
-        { id, title, description, date, status },
+        { id, ...newTaskWithoutId },
       ]);
     } catch (error) {
       console.error("Erro na requisição:", error);
@@ -83,23 +103,24 @@ const ListaTasks = () => {
   const StatusChange = async (task, newStatus) => {
     const id = parseInt(task.id);
     try {
-        const updatedTask = { ...task, status: newStatus };
-        const updatedTasks = tasks.map((t) => (t.id === task.id ? updatedTask : t));
-        setTasks(updatedTasks); 
-        const response = await fetch(`http://localhost:3000/activity/status/${id}`, {
-            method: "PATCH",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ status: newStatus }), 
-        });
-        
+      const updatedTask = { ...task, status: newStatus };
+      const updatedTasks = tasks.map((t) =>
+        t.id === task.id ? updatedTask : t
+      );
+      setTasks(updatedTasks);
+
+      await fetch(`http://localhost:3000/activity/status/${id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ status: newStatus }),
+      });
     } catch (error) {
-        setTasks(task);
-        console.error("Erro durante a atualização da tarefa:", error);
+      console.error("Erro durante a atualização da tarefa:", error);
     }
-};
-  
+  };
+
   const ChangeRowsPerPage = (event) => {
     setRowsPerPage(+event.target.value);
     setPage(0);
@@ -108,22 +129,21 @@ const ListaTasks = () => {
   const ChangePage = (_, newPage) => {
     setPage(newPage);
   };
+
   const EditTask = async (editTask) => {
-    const idTo = editTask.id;
-    const {id, title, description, date, status } = editTask;
-    const UpdateTask = {id, title, description, date, status };
+    const id = parseInt(editTask.id);
     try {
-      const response = await fetch(`http://localhost:3000/activity/${idTo}`, {
-            method: "PATCH",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(UpdateTask), 
-        });
-        const updatedTasks = tasks.map((t) =>
-        t === editTask ? { ...t, ...editTask } : t
+      const response = await fetch(`http://localhost:3000/activity/${id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(editTask),
+      });
+      const updatedTasks = tasks.map((t) =>
+        t.id === id ? { ...t, ...editTask } : t
       );
-     
+
       setTasks(updatedTasks);
     } catch (error) {
       console.error("Erro durante a atualização da tarefa:", error);
@@ -133,19 +153,19 @@ const ListaTasks = () => {
 
   const DeleteTask = async (taskToDelete) => {
     try {
-      const updatedTasks = tasks.filter((task) => task !== taskToDelete);
+      const id = parseInt(taskToDelete.id);
+      await fetch(`http://localhost:3000/activity/${id}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: "",
+      });
+
+      const updatedTasks = tasks.filter((task) => task.id !== id);
       setTasks(updatedTasks);
       setSelectedTask(null);
       setOpenModal(false);
-      const id = parseInt(taskToDelete.id);
-      const response = await fetch(`http://localhost:3000/activity/${id}`, {
-            method: "DELETE",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: '',
-        });
-      
     } catch (error) {
       console.error("Erro durante a exclusão da tarefa:", error);
     }
@@ -206,9 +226,9 @@ const ListaTasks = () => {
                 <TableBody>
                   {tasks
                     .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                    .map((task, index) => (
-                      <TableRow key={index}>
-                        <TableCell align="center">{[task.id]}</TableCell>
+                    .map((task) => (
+                      <TableRow key={task.id}>
+                        <TableCell align="center">{task.id}</TableCell>
                         <TableCell align="center">{task.title}</TableCell>
                         <TableCell align="center">{task.date}</TableCell>
                         <TableCell align="center">
@@ -289,6 +309,7 @@ const ListaTasks = () => {
         onClose={() => {
           setOpen(false);
         }}
+        tasksList={tasks}
         onTaskCreate={TaskCreate}
       />
       <TaskDescription

@@ -8,8 +8,8 @@ router = APIRouter(prefix="/activity", tags=["Activity"])
 @router.post("/", description="Create an activity")
 def create_activity(new_activity: ActivityUpdateAndCreate): 
     id_generate = servicesTasks.create_activity(new_activity)
-    data = servicesTasks.formatBR(new_activity.date)
-    activity = ActivityBase(id = id_generate,title = new_activity.title, description=new_activity.description,date= data, status=new_activity.status)
+    #data = servicesTasks.formatBR(new_activity.date)
+    activity = ActivityBase(id = id_generate,title = new_activity.title, description=new_activity.description,date= new_activity.date, status=new_activity.status)
     if id_generate:
         return activity
     else:

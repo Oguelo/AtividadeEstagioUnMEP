@@ -6,7 +6,7 @@ from database.database import DB
 
 
 def convertDTOFront(item: dict) -> ActivityBase:
-    return ActivityBase(**item)
+     return ActivityBase(**item)
 def formatBR(dateUn: str):
     data_recebida = date.fromisoformat(dateUn)
     data_formatada = data_recebida.strftime("%d/%m/%Y")

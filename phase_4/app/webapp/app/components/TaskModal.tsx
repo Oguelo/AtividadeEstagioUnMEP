@@ -18,7 +18,7 @@ import {
   TaskStatusColors,
 } from "@/app/theme";
 
-const NewTaskModal = ({ open, onClose, onTaskCreate }) => {
+const NewTaskModal = ({ open, onClose,tasksList, onTaskCreate}) => {
   const [newTask, setNewTask] = useState({
     id: null,
     title: "",
@@ -26,23 +26,44 @@ const NewTaskModal = ({ open, onClose, onTaskCreate }) => {
     date: "",
     status: "Pendente",
   });
+  
   const handleCreateTask = () => {
+    const taskAlreadyExists = tasksList.some(
+      (existingTask) =>
+        existingTask.title === newTask.title && existingTask.date === newTask.date
+    );
+
+    if (taskAlreadyExists) {
+      setShowTitleExistsAlert(true);
+      return;
+    }
+
     onTaskCreate(newTask);
     onClose();
-    setNewTask({ id: null, title: "", description: "", date: "", status: "Pendente" });
+    setNewTask({
+      id: null,
+      title: "",
+      description: "",
+      date: "",
+      status: "Pendente",
+    });
+  };
+  const isFormValid = () => {
+
+    return newTask.title !== "" && newTask.description !== "" && newTask.date !== "";
   };
   const handleClose = (event) => {
     if (event !== "backdropClick") {
       onClose();
-      setNewTask({ id: null, title: "", description: "", date: "", status: "Pendente" });
+      setShowTitleExistsAlert(false);
+      setNewTask({
+        id: null,
+        title: "",
+        description: "",
+        date: "",
+        status: "Pendente",
+      });
     }
-  };
-  const isFormValid = () => {
-    return (
-      newTask.title.trim() !== "" &&
-      newTask.description.trim() !== "" &&
-      newTask.date.trim() !== ""
-    );
   };
   return (
     <BootstrapDialog
@@ -308,3 +329,4 @@ const TaskEdit = ({ open, onClose, editedTask ,  onEditTask}) => {
 };
 
 export { TaskDescription, TaskEdit, NewTaskModal };
+  
