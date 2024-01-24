@@ -49,7 +49,8 @@ const ListaTasks = () => {
       try {
         const response = await axios.get('http://localhost:3000/activity/all');
         const tasksList = response.data;
-        console.log(tasksList);
+        console.log(response);
+       
         setTasks(tasksList);
       } catch (error) {
         console.error('Erro durante a requisição GET:', error);
@@ -58,7 +59,7 @@ const ListaTasks = () => {
   
     getData();
   }, []);
-  
+  console.log("Essa é a RESPOSSSATAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
   const TaskCreate = (newTask) => {
     const { title, description, date, status } = newTask;
     const newTaskWithoutId = { title, description, date, status };
@@ -187,6 +188,7 @@ const ListaTasks = () => {
               <Table stickyHeader size="medium" aria-label="sticky table">
                 <TableHead>
                   <TableRow>
+
                     <TableCell align="center">Titulo</TableCell>
                     <TableCell align="center">Data</TableCell>
                     <TableCell align="center">Status</TableCell>
