@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { ChangeEvent, useEffect, useState } from "react";
 import {
   Button,
   Typography,
@@ -19,6 +19,7 @@ import {
   DeleteOutlined as DeleteOutlinedIcon,
   EditOutlined as EditOutlinedIcon,
   RemoveRedEyeOutlined as RemoveRedEyeOutlinedIcon,
+  
 } from "@mui/icons-material";
 import Grid from "@mui/material/Unstable_Grid2";
 import Divider from "@/app/components/Divider"; // Certifique-se de fornecer o caminho correto
@@ -30,16 +31,17 @@ import {
   NewTaskModal,
 } from "@/app/components/TaskModal";
 import { addDays, format } from "date-fns";
-const ListaTasks = () => {
-  const [selectedTask, setSelectedTask] = useState(null);
-  const [tasks, setTasks] = useState([]);
-  const [open, setOpen] = useState(false);
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [openModal, setOpenModal] = useState(false);
-  const [openEditModal, setOpenEditModal] = useState(false);
-  const [detailedTask, setDetailedTask] = useState(null);
-  const [editedTask, setEditedTask] = useState(null);
+import { Task,  TaskStatus } from "@/app/components/Task";
+interface ListaTasksProps {}
+const ListaTasks: React.FC<ListaTasksProps> = () => {
+  const [tasks, setTasks] = useState<typeof Task[]>([]);
+  const [open, setOpen] = useState<boolean>(false);
+  const [page, setPage] = useState<number>(0);
+  const [rowsPerPage, setRowsPerPage] = useState<number>(10);
+  const [openModal, setOpenModal] = useState<boolean>(false);
+  const [openEditModal, setOpenEditModal] = useState<boolean>(false);
+  const [detailedTask, setDetailedTask] = useState<Task | null>(null);
+  const [editedTask, setEditedTask] = useState<Task | null>(null);
 
   const fetchTasks = async () => {
     try {
@@ -75,7 +77,7 @@ const ListaTasks = () => {
     fetchTasks();
   }, []);
 
-  const TaskCreate = async (newTask) => {
+  const TaskCreate = async (newTask: Task) => {
     const { title, description, date, status } = newTask;
     const newTaskWithoutId = { title, description, date, status };
 
@@ -97,8 +99,8 @@ const ListaTasks = () => {
     }
   };
 
-  const StatusChange = async (task, newStatus) => {
-    const id = parseInt(task.id);
+  const StatusChange = async (task: Task, newStatus: TaskStatus) => {
+    const id =(task.id);
     try {
       const updatedTask = { ...task, status: newStatus };
       const updatedTasks = tasks.map((t) =>
@@ -118,17 +120,17 @@ const ListaTasks = () => {
     }
   };
 
-  const ChangeRowsPerPage = (event) => {
+  const ChangeRowsPerPage = (event: ChangeEvent<HTMLInputElement>) => {
     setRowsPerPage(+event.target.value);
     setPage(0);
   };
 
-  const ChangePage = (_, newPage) => {
+  const ChangePage = (_, newPage: number) => {
     setPage(newPage);
   };
 
-  const EditTask = async (editTask) => {
-    const id = parseInt(editTask.id);
+  const EditTask = async (editTask: Task) => {
+    const id = editTask.id;
     try {
       const updatedFields = {
         title: editTask.title,
@@ -156,7 +158,7 @@ const ListaTasks = () => {
     setOpenEditModal(false);
   };
 
-  const DeleteTask = async (taskToDelete) => {
+  const DeleteTask = async (taskToDelete: Task) => {
     try {
       const id = taskToDelete.id;
       await fetch(`http://localhost:3000/activity/${id}`, {
@@ -169,19 +171,18 @@ const ListaTasks = () => {
 
       const updatedTasks = tasks.filter((task) => task.id !== id);
       setTasks(updatedTasks);
-      setSelectedTask(null);
       setOpenModal(false);
     } catch (error) {
       console.error("Erro durante a exclusão da tarefa:", error);
     }
   };
 
-  const OpenEditModal = (task) => {
+  const OpenEditModal = (task: Task) => {
     setEditedTask(task);
     setOpenEditModal(true);
   };
 
-  const OpenDetailedModal = (task) => {
+  const OpenDetailedModal = (task: Task ) => {
     setDetailedTask(task);
     setOpenModal(true);
   };
@@ -270,7 +271,7 @@ const ListaTasks = () => {
                               color="error"
                               startIcon={<DeleteOutlinedIcon />}
                               onClick={() => {
-                                setSelectedTask(task);
+                              
                                 DeleteTask(task);
                               }}
                             >

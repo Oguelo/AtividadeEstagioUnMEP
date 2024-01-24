@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, ChangeEvent } from "react";
 import {
   Button,
   TextField,
@@ -18,47 +18,65 @@ import {
   StyledDialogTitle,
   TaskStatusColors,
 } from "@/app/theme";
+import { Task, TaskStatus,TaskDescriptionProps, TaskEditProps, NewTaskModalProps } from "@/app/components/Task";
 
-const isFormValid = (newTask) => {
 
-  return newTask.title !== "" && newTask.description !== "" && newTask.date !== "" ;
+
+const isFormValid = (newTask: Task) => {
+  return (
+    newTask.title !== "" && newTask.description !== "" && newTask.date !== ""
+  );
 };
-const NewTaskModal = ({ open, onClose,tasksList, onTaskCreate}) => {
-  const [newTaskError, setNewTaskError] = useState('');
-  const [newTask, setNewTask] = useState({
+
+const NewTaskModal: React.FC<NewTaskModalProps> = ({
+  open,
+  onClose,
+  tasksList,
+  onTaskCreate,
+}) => {
+  const [newTaskError, setNewTaskError] = useState<string>("");
+  const [newTask, setNewTask] = useState<Task>({
     id: null,
     title: "",
     description: "",
     date: "",
     status: "Pendente",
   });
-  function duplicateTask(newTask, tasksList, setNewTaskError) {
+
+  function duplicateTask(
+    newTask: Task,
+    tasksList: Task[],
+    setNewTaskError: React.Dispatch<React.SetStateAction<string>>
+  ) {
     const existingTasks = tasksList.map((task) => ({
       title: task.title.toLowerCase(),
       date: task.date.toLowerCase(),
     }));
-  
+
     const newTaskTitle = newTask.title.toLowerCase();
     const newTaskDate = newTask.date.toLowerCase();
-  
-    if (existingTasks.some((task) => task.title === newTaskTitle && task.date === newTaskDate)) {
-      return 'Já existe uma tarefa igual cadastrada no mesmo dia, escolha outro dia';
+
+    if (
+      existingTasks.some(
+        (task) => task.title === newTaskTitle && task.date === newTaskDate
+      )
+    ) {
+      return "Já existe uma tarefa igual cadastrada no mesmo dia, escolha outro dia";
     }
-  
+
     return null;
   }
-  
-  
+
   const handleCreateTask = () => {
-    const duplicateError = duplicateTask(newTask, tasksList);
-  
+    const duplicateError = duplicateTask(newTask, tasksList, setNewTaskError);
+
     if (duplicateError) {
       setNewTaskError(duplicateError);
       return;
     }
-  
+
     setNewTaskError("");
-  
+
     onTaskCreate(newTask);
     onClose();
     setNewTask({
@@ -69,9 +87,8 @@ const NewTaskModal = ({ open, onClose,tasksList, onTaskCreate}) => {
       status: "Pendente",
     });
   };
-  
-  
-  const handleClose = (event) => {
+
+  const handleClose = (event: string) => {
     if (event !== "backdropClick") {
       onClose();
       setNewTask({
@@ -80,12 +97,11 @@ const NewTaskModal = ({ open, onClose,tasksList, onTaskCreate}) => {
         description: "",
         date: "",
         status: "Pendente",
-        
       });
       setNewTaskError("");
     }
   };
-  
+
   return (
     <BootstrapDialog
       open={open}
@@ -141,7 +157,9 @@ const NewTaskModal = ({ open, onClose,tasksList, onTaskCreate}) => {
             style={{
               backgroundColor: TaskStatusColors[newTask.status] || "",
             }}
-            onChange={(e) => setNewTask({ ...newTask, status: e.target.value })}
+            onChange={(e) =>
+              setNewTask({ ...newTask, status: e.target.value as TaskStatus })
+            }
           >
             {Object.keys(TaskStatusColors).map((status) => (
               <MenuItem
@@ -168,7 +186,9 @@ const NewTaskModal = ({ open, onClose,tasksList, onTaskCreate}) => {
               InputLabelProps={{ shrink: true }}
               onChange={(e) => setNewTask({ ...newTask, date: e.target.value })}
             />
-            {newTaskError && <FormHelperText error>{newTaskError}</FormHelperText>}
+            {newTaskError && (
+              <FormHelperText error>{newTaskError}</FormHelperText>
+            )}
           </Grid>
         </Grid>
       </DialogContent>
@@ -185,14 +205,14 @@ const NewTaskModal = ({ open, onClose,tasksList, onTaskCreate}) => {
             sx={{ backgroundColor: theme.palette.success.main }}
             variant="contained"
             onClick={handleCreateTask}
-            disabled={!isFormValid(newTask) }
+            disabled={!isFormValid(newTask)}
           >
             Criar
           </Button>
           <Button
             sx={{ backgroundColor: theme.palette.error.main }}
             variant="contained"
-            onClick={(e) => handleClose(e)}
+            onClick={(e) => handleClose(e.type)}
           >
             Cancelar
           </Button>
@@ -202,7 +222,12 @@ const NewTaskModal = ({ open, onClose,tasksList, onTaskCreate}) => {
   );
 };
 
-const TaskDescription = ({ open, onClose, detailedTask }) => {
+
+const TaskDescription: React.FC<TaskDescriptionProps> = ({
+  open,
+  onClose,
+  detailedTask,
+}) => {
   return (
     <BootstrapDialog open={open} onClose={onClose}>
       <DialogContent dividers>
@@ -237,54 +262,45 @@ const TaskDescription = ({ open, onClose, detailedTask }) => {
   );
 };
 
-const TaskEdit = ({ open, onClose, editedTask ,  onEditTask}) => {
-  const [editTask, setEditTask] = useState({
-    id: editedTask?.id ,
-    title: editedTask?.title ,
-    description: editedTask?.description ,
-    date: editedTask?.date ,
-    status: editedTask?.status ,
+const TaskEdit: React.FC<TaskEditProps> = ({ open, onClose, editedTask, onEditTask }) => {
+  const [editTask, setEditTask] = useState<Task>({
+    id: editedTask?.id,
+    title: editedTask?.title,
+    description: editedTask?.description,
+    date: editedTask?.date,
+    status: editedTask?.status,
   });
-  const handleClose = (event) => {
+
+  const handleClose = (event: string) => {
     if (event !== "backdropClick") {
       onClose();
-      setEditTask((prevEditTask) => ({
+      setEditTask((prevEditTask: Task) => ({
         ...prevEditTask,
-        id: editedTask.id,
-        title: editedTask.title,
-        description: editedTask.description,
-        date: editedTask.date,
-        status: editedTask.status,
+        id: editedTask?.id ,
+        title: editedTask?.title,
+        description: editedTask?.description,
+        date: editedTask?.date ,
+        status: editedTask?.status,
       }));
     }
   };
 
   const handleEditTask = () => {
     onClose();
-    setEditTask((prevEditTask) => ({
-      ...prevEditTask,
-      id: editedTask.id,
-      title: editTask.title,
-      description: editTask.description,
-      date: editTask.date,
-      status: editedTask.status,
-    }));
     onEditTask(editTask);
   };
-  
 
   useEffect(() => {
     if (editedTask) {
       setEditTask({
-        id: editedTask.id || "",
-        title: editedTask.title || "",
-        description: editedTask.description || "",
-        date: editedTask.date || "",
-        status: editedTask.status|| "",
+        id: editedTask.id,
+        title: editedTask.title,
+        description: editedTask.description,
+        date: editedTask.date,
+        status: editedTask.status,
       });
     }
   }, [editedTask]);
-
   return (
     <BootstrapDialog open={open} onClose={onClose}>
       <DialogContent dividers>
@@ -361,6 +377,3 @@ const TaskEdit = ({ open, onClose, editedTask ,  onEditTask}) => {
 };
 
 export { TaskDescription, TaskEdit, NewTaskModal };
-  
-  
-
