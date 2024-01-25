@@ -20,7 +20,6 @@
         "@mui/material": "^5.14.18",
         "@mui/x-charts": "^6.18.3",
         "@mui/x-date-pickers": "^6.18.5",
-        "axios": "^1.6.2",
         "date-fns": "^3.3.1",
         "js-cookie": "^3.0.5",
         "luxon": "^3.4.4",
