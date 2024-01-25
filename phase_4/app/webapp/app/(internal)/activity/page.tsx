@@ -30,7 +30,7 @@ import {
   TaskEdit,
   NewTaskModal,
 } from "@/app/components/TaskModal";
-import { addDays, format } from "date-fns";
+
 import { Task,  TaskStatus } from "@/app/components/Task";
 interface ListaTasksProps {}
 const ListaTasks: React.FC<ListaTasksProps> = () => {
@@ -235,10 +235,9 @@ const ListaTasks: React.FC<ListaTasksProps> = () => {
                     .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                     .map((task) => (
                       <TableRow key={task.id}>
-                       
                         <TableCell align="center">{task.title}</TableCell>
                         <TableCell align="center">
-                        {format(addDays(new Date(task.date), 1), "dd/MM/yyyy")}
+                        {new Date(task.date).toLocaleDateString('pt-BR')}
                         </TableCell>
 
                         <TableCell align="center">
