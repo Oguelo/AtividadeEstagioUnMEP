@@ -19,6 +19,7 @@ import {
   DeleteOutlined as DeleteOutlinedIcon,
   EditOutlined as EditOutlinedIcon,
   RemoveRedEyeOutlined as RemoveRedEyeOutlinedIcon,
+  
 } from "@mui/icons-material";
 import Grid from "@mui/material/Unstable_Grid2";
 import Divider from "@/app/components/Divider"; // Certifique-se de fornecer o caminho correto
@@ -33,7 +34,7 @@ import {
 import { Task,  TaskStatus } from "@/app/components/Task";
 interface ListaTasksProps {}
 const ListaTasks: React.FC<ListaTasksProps> = () => {
-  const [tasks, setTasks] = useState<Task[]>([]);
+  const [tasks, setTasks] = useState<typeof Task[]>([]);
   const [open, setOpen] = useState<boolean>(false);
   const [page, setPage] = useState<number>(0);
   const [rowsPerPage, setRowsPerPage] = useState<number>(10);
@@ -237,7 +238,7 @@ const ListaTasks: React.FC<ListaTasksProps> = () => {
                        
                         <TableCell align="center">{task.title}</TableCell>
                         <TableCell align="center">
-                        {new Date(task.date + "T00:00:00").toLocaleDateString('pt-BR')}
+                        {new Date(task.date).toLocaleDateString('pt-BR')}
                         </TableCell>
 
                         <TableCell align="center">
