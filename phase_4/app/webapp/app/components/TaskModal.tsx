@@ -46,6 +46,7 @@ const NewTaskModal: React.FC<NewTaskModalProps> = ({
   function duplicateTask(
     newTask: Task,
     tasksList: Task[],
+    setNewTaskError: React.Dispatch<React.SetStateAction<string>>
   ) {
     const existingTasks = tasksList.map((task) => ({
       title: task.title.toLowerCase(),
@@ -66,9 +67,8 @@ const NewTaskModal: React.FC<NewTaskModalProps> = ({
     return null;
   }
 
-
   const handleCreateTask = () => {
-    const duplicateError = duplicateTask(newTask, tasksList);
+    const duplicateError = duplicateTask(newTask, tasksList, setNewTaskError);
 
     if (duplicateError) {
       setNewTaskError(duplicateError);

@@ -23,8 +23,8 @@ import {
 } from "@mui/icons-material";
 import Grid from "@mui/material/Unstable_Grid2";
 import Divider from "@/app/components/Divider"; // Certifique-se de fornecer o caminho correto
-import { theme } from "@/app/styles/theme";
-import { TaskStatusColors } from  "@/app/styles/theme";
+import { theme } from "@/app/theme";
+import { TaskStatusColors } from "@/app/theme";
 import {
   TaskDescription,
   TaskEdit,
