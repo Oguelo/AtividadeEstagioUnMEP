@@ -1,3 +1,4 @@
+"use client";
 export type TaskStatus = "Pendente" | "Em Andamento" | "Concluída";
 export interface Task {
   id: number;
