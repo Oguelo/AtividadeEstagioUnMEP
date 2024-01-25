@@ -5,8 +5,8 @@ settings = {
     "user": "root",
     "password": "root",
     "port": 3306,
-    "host": "tasks_database",  # Endereço do servidor MySQL
-    "database": "TasksTable",  # Nome do banco de dados
+    "host": "tasks_database",  
+    "database": "TasksTable",  
     "raise_on_warnings": True,
 }
 

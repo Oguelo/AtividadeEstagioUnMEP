@@ -43,32 +43,24 @@ const NewTaskModal: React.FC<NewTaskModalProps> = ({
     status: "Pendente",
   });
 
-  function duplicateTask(
-    newTask: Task,
-    tasksList: Task[],
-    setNewTaskError: React.Dispatch<React.SetStateAction<string>>
-  ) {
-    const existingTasks = tasksList.map((task) => ({
-      title: task.title.toLowerCase(),
-      date: task.date.toLowerCase(),
-    }));
-
-    const newTaskTitle = newTask.title.toLowerCase();
-    const newTaskDate = newTask.date.toLowerCase();
-
-    if (
-      existingTasks.some(
-        (task) => task.title === newTaskTitle && task.date === newTaskDate
-      )
-    ) {
-      return "Já existe uma tarefa igual cadastrada no mesmo dia, escolha outro dia";
+    function duplicateTask(newTask: Task, tasksList: Task[]) {
+      const existingTasks = tasksList.map((task) => ({
+        title: task.title.toLowerCase(),
+        date: task.date.toLowerCase(),
+      }));
+  
+      const newTaskTitle = newTask.title.toLowerCase();
+      const newTaskDate = newTask.date.toLowerCase();
+  
+      if (existingTasks.some((task) => task.title === newTaskTitle && task.date === newTaskDate)) {
+        return 'Já existe uma tarefa igual cadastrada no mesmo dia, escolha outro dia';
+      }
+  
+      return null;
     }
 
-    return null;
-  }
-
   const handleCreateTask = () => {
-    const duplicateError = duplicateTask(newTask, tasksList, setNewTaskError);
+    const duplicateError = duplicateTask(newTask, tasksList);
 
     if (duplicateError) {
       setNewTaskError(duplicateError);
