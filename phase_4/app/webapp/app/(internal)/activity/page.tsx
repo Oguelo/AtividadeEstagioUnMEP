@@ -22,9 +22,9 @@ import {
   
 } from "@mui/icons-material";
 import Grid from "@mui/material/Unstable_Grid2";
-import Divider from "@/app/components/Divider";
+import Divider from "@/app/components/Divider"; // Certifique-se de fornecer o caminho correto
 import { theme } from "@/app/styles/theme";
-import { TaskStatusColors } from "@/app/styles/theme";
+import { TaskStatusColors } from  "@/app/styles/theme";
 import {
   TaskDescription,
   TaskEdit,
@@ -235,6 +235,7 @@ const ListaTasks: React.FC<ListaTasksProps> = () => {
                     .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                     .map((task) => (
                       <TableRow key={task.id}>
+                       
                         <TableCell align="center">{task.title}</TableCell>
                         <TableCell align="center">
                         {new Date(task.date).toLocaleDateString('pt-BR')}
