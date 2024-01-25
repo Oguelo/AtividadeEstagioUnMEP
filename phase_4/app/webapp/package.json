@@ -24,6 +24,7 @@
         "js-cookie": "^3.0.5",
         "luxon": "^3.4.4",
         "next": "^13.5.4",
+        "node": "^21.6.0",
         "react": "^18",
         "react-dom": "^18",
         "react-imask": "^7.2.0",
