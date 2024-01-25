@@ -1,3 +1,4 @@
+"use client";
 export type TaskStatus = "Pendente" | "Em Andamento" | "Concluída";
 export interface Task {
   id: number;
@@ -6,6 +7,8 @@ export interface Task {
   date: string;
   status: TaskStatus;
 }
+
+
 export interface TaskDescriptionProps {
   open: boolean;
   onClose: () => void;

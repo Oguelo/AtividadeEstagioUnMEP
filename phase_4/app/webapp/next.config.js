@@ -1,18 +1,18 @@
-/** @type {import('next').NextConfig} */
-const nextConfig = {
-    images: {
-        remotePatterns: [
+module.exports = {
+    webpack: (config, { isServer }) => {
+      // Disable processing of static images on the server side
+      if (isServer) {
+        config.module.rules.push({
+          test: /\.(png|jpe?g|gif|svg)$/i,
+          use: [
             {
-                hostname: '*'
+              loader: 'ignore-loader',
             },
-            {
-                hostname: "encrypted-tbn1.gstatic.com"
-            },
-            {
-                hostname: "images-americanas.b2w.io"
-            }
-        ]
-    }
-}
-
-module.exports = nextConfig
+          ],
+        });
+      }
+  
+      return config;
+    },
+  };
+  

@@ -1,3 +1,4 @@
+"use client";
 import React, { useEffect, useState } from "react";
 import {
   Button,
@@ -18,9 +19,13 @@ import {
   StyledDialogTitle,
   TaskStatusColors,
 } from "@/app/theme";
-import { Task, TaskStatus,TaskDescriptionProps, TaskEditProps, NewTaskModalProps } from "@/app/components/Task";
-
-
+import {
+  Task,
+  TaskStatus,
+  TaskDescriptionProps,
+  TaskEditProps,
+  NewTaskModalProps,
+} from "@/app/components/Task";
 
 const isFormValid = (newTask: Task) => {
   return (
@@ -36,7 +41,7 @@ const NewTaskModal: React.FC<NewTaskModalProps> = ({
 }) => {
   const [newTaskError, setNewTaskError] = useState<string>("");
   const [newTask, setNewTask] = useState<Task>({
-    id: null,
+    id: null || 0,
     title: "",
     description: "",
     date: "",
@@ -80,7 +85,7 @@ const NewTaskModal: React.FC<NewTaskModalProps> = ({
     onTaskCreate(newTask);
     onClose();
     setNewTask({
-      id: null,
+      id: null || 0,
       title: "",
       description: "",
       date: "",
@@ -88,18 +93,16 @@ const NewTaskModal: React.FC<NewTaskModalProps> = ({
     });
   };
 
-  const handleClose = (event: string) => {
-    if (event !== "backdropClick") {
+  const handleClose = () => { 
       onClose();
       setNewTask({
-        id: null,
+        id: null || 0,
         title: "",
         description: "",
         date: "",
         status: "Pendente",
       });
       setNewTaskError("");
-    }
   };
 
   return (
@@ -154,23 +157,24 @@ const NewTaskModal: React.FC<NewTaskModalProps> = ({
           <Grid xs={12}></Grid>
           <Select
             value={newTask.status}
-            style={{
-              backgroundColor: TaskStatusColors[newTask.status] || "",
-            }}
             onChange={(e) =>
               setNewTask({ ...newTask, status: e.target.value as TaskStatus })
             }
           >
-            {Object.keys(TaskStatusColors).map((status) => (
-              <MenuItem
-                key={status}
-                value={status}
-                style={{ backgroundColor: TaskStatusColors[status] }}
-              >
-                {status}
-              </MenuItem>
-            ))}
+            {Object.keys(TaskStatusColors).map((statusKey) => {
+              const status = statusKey as TaskStatus; 
+              return (
+                <MenuItem
+                  key={status}
+                  value={status}
+                  style={{ backgroundColor: TaskStatusColors[status] }}
+                >
+                  {status}
+                </MenuItem>
+              );
+            })}
           </Select>
+
           <Grid xs={12}></Grid>
           <Grid xs={12} md={6}>
             <Typography sx={{ color: theme.palette.dark.main }}>
@@ -212,7 +216,7 @@ const NewTaskModal: React.FC<NewTaskModalProps> = ({
           <Button
             sx={{ backgroundColor: theme.palette.error.main }}
             variant="contained"
-            onClick={(e) => handleClose(e.type)}
+            onClick={handleClose}
           >
             Cancelar
           </Button>
@@ -221,7 +225,6 @@ const NewTaskModal: React.FC<NewTaskModalProps> = ({
     </BootstrapDialog>
   );
 };
-
 
 const TaskDescription: React.FC<TaskDescriptionProps> = ({
   open,
@@ -234,7 +237,6 @@ const TaskDescription: React.FC<TaskDescriptionProps> = ({
         <Typography
           variant="h5"
           color="primary"
-          dividers
           style={{ maxHeight: "80vh" }}
         >
           Descrição da Tarefa
@@ -262,28 +264,31 @@ const TaskDescription: React.FC<TaskDescriptionProps> = ({
   );
 };
 
-const TaskEdit: React.FC<TaskEditProps> = ({ open, onClose, editedTask, onEditTask }) => {
+const TaskEdit: React.FC<TaskEditProps> = ({
+  open,
+  onClose,
+  editedTask,
+  onEditTask,
+}) => {
   const [editTask, setEditTask] = useState<Task>({
-    id: editedTask?.id,
-    title: editedTask?.title,
-    description: editedTask?.description,
-    date: editedTask?.date,
-    status: editedTask?.status,
+    id: editedTask?.id || 0,
+    title: editedTask?.title || "",
+    description: editedTask?.description || "",
+    date: editedTask?.date || "",
+    status: editedTask?.status || "Pendente",
   });
-
-  const handleClose = (event: string) => {
-    if (event !== "backdropClick") {
+  const handleClose = () => {
       onClose();
       setEditTask((prevEditTask: Task) => ({
         ...prevEditTask,
-        id: editedTask?.id ,
-        title: editedTask?.title,
-        description: editedTask?.description,
-        date: editedTask?.date ,
-        status: editedTask?.status,
+        id: editedTask?.id ?? prevEditTask.id,
+        title: editedTask?.title ?? prevEditTask.title,
+        description: editedTask?.description ?? prevEditTask.description,
+        date: editedTask?.date ?? prevEditTask.date,
+        status: editedTask?.status ?? prevEditTask.status,
       }));
-    }
   };
+  
 
   const handleEditTask = () => {
     onClose();
@@ -365,7 +370,7 @@ const TaskEdit: React.FC<TaskEditProps> = ({ open, onClose, editedTask, onEditTa
         </Button>
 
         <Button
-          onClick={(e) => handleClose(e)}
+          onClick={handleClose}
           variant="contained"
           color="primary"
         >

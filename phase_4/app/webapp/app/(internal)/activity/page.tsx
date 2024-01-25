@@ -19,10 +19,9 @@ import {
   DeleteOutlined as DeleteOutlinedIcon,
   EditOutlined as EditOutlinedIcon,
   RemoveRedEyeOutlined as RemoveRedEyeOutlinedIcon,
-  
 } from "@mui/icons-material";
 import Grid from "@mui/material/Unstable_Grid2";
-import Divider from "@/app/components/Divider"; // Certifique-se de fornecer o caminho correto
+import Divider from "@/app/components/Divider";
 import { theme } from "@/app/theme";
 import { TaskStatusColors } from "@/app/theme";
 import {
@@ -31,10 +30,10 @@ import {
   NewTaskModal,
 } from "@/app/components/TaskModal";
 
-import { Task,  TaskStatus } from "@/app/components/Task";
+import { Task, TaskStatus } from "@/app/components/Task";
 interface ListaTasksProps {}
 const ListaTasks: React.FC<ListaTasksProps> = () => {
-  const [tasks, setTasks] = useState<typeof Task[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [open, setOpen] = useState<boolean>(false);
   const [page, setPage] = useState<number>(0);
   const [rowsPerPage, setRowsPerPage] = useState<number>(10);
@@ -55,20 +54,19 @@ const ListaTasks: React.FC<ListaTasksProps> = () => {
 
       if (Array.isArray(data)) {
         const updatedTasks = data.map((task) => ({
-          id: parseInt(task.id),
+          id: task.id,
           title: task.title,
           description: task.description,
           date: task.date,
           status: task.status,
         }));
-
         setTasks(updatedTasks);
       } else {
         console.error(
           "A resposta do servidor não contém um array de tarefas válido."
         );
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Erro ao carregar a lista de tarefas:", error.message);
     }
   };
@@ -100,7 +98,7 @@ const ListaTasks: React.FC<ListaTasksProps> = () => {
   };
 
   const StatusChange = async (task: Task, newStatus: TaskStatus) => {
-    const id =(task.id);
+    const id = task.id;
     try {
       const updatedTask = { ...task, status: newStatus };
       const updatedTasks = tasks.map((t) =>
@@ -125,7 +123,7 @@ const ListaTasks: React.FC<ListaTasksProps> = () => {
     setPage(0);
   };
 
-  const ChangePage = (_, newPage: number) => {
+  const ChangePage = (_: any, newPage: number) => {
     setPage(newPage);
   };
 
@@ -182,7 +180,7 @@ const ListaTasks: React.FC<ListaTasksProps> = () => {
     setOpenEditModal(true);
   };
 
-  const OpenDetailedModal = (task: Task ) => {
+  const OpenDetailedModal = (task: Task) => {
     setDetailedTask(task);
     setOpenModal(true);
   };
@@ -235,27 +233,30 @@ const ListaTasks: React.FC<ListaTasksProps> = () => {
                     .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                     .map((task) => (
                       <TableRow key={task.id}>
-                       
                         <TableCell align="center">{task.title}</TableCell>
                         <TableCell align="center">
-                        {new Date(task.date).toLocaleDateString('pt-BR')}
+                          {new Date(task.date).toLocaleDateString("pt-BR")}
                         </TableCell>
 
                         <TableCell align="center">
                           <Select
                             value={task.status}
-                            onChange={(e) => StatusChange(task, e.target.value)}
+                            onChange={(e) =>
+                              StatusChange(task, e.target.value as TaskStatus)
+                            }
                             style={{
                               backgroundColor:
                                 TaskStatusColors[task.status] || "",
                             }}
+                            id={`status-select-${task.id}`}
                           >
                             {Object.keys(TaskStatusColors).map((status) => (
                               <MenuItem
                                 key={status}
                                 value={status}
                                 style={{
-                                  backgroundColor: TaskStatusColors[status],
+                                  backgroundColor:
+                                    TaskStatusColors[status as TaskStatus],
                                 }}
                               >
                                 {status}
@@ -263,6 +264,7 @@ const ListaTasks: React.FC<ListaTasksProps> = () => {
                             ))}
                           </Select>
                         </TableCell>
+
                         <TableCell align="center">
                           <DialogActions>
                             <Button
@@ -271,7 +273,6 @@ const ListaTasks: React.FC<ListaTasksProps> = () => {
                               color="error"
                               startIcon={<DeleteOutlinedIcon />}
                               onClick={() => {
-                              
                                 DeleteTask(task);
                               }}
                             >
