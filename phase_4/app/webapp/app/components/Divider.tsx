@@ -1,6 +1,6 @@
 "use client";
 
-import { theme } from "@/app/styles/theme";
+import { theme } from "@/app/theme";
 import { Divider as MDivider } from "@mui/material";
 import { CSSProperties } from "react";
 
