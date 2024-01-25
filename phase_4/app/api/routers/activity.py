@@ -45,7 +45,7 @@ def update_activity_status( id: int, activity_update: ActivityStatusUpdate):
 
 @router.delete("/{id}", description="Delete an activity by its ID")
 def delete_activity(id: int):
-   
+    print(f"Received data: id={id}")
     servicesTasks.delete_activity(id)
     return f"Tarefa apagada"
 
