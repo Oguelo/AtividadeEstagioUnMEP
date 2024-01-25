@@ -10,9 +10,9 @@ CREATE TABLE activities (
     description VARCHAR(255),
     date DATE,
     status VARCHAR(255)
-);
+)ENGINE = InnoDB; 
 
-ENGINE = InnoDB;    
+
 
 
 
