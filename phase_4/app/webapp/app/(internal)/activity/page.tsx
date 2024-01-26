@@ -13,7 +13,8 @@ import {
   TableBody,
   Paper,
   TableContainer,
-  TablePagination,
+  Pagination,
+  Container,
 } from "@mui/material";
 import {
   DeleteOutlined as DeleteOutlinedIcon,
@@ -31,8 +32,7 @@ import {
 } from "@/app/components/TaskModal";
 
 import { Task, TaskStatus } from "@/app/components/Task";
-interface ListaTasksProps {}
-const ListaTasks: React.FC<ListaTasksProps> = () => {
+const ListaTasks = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [open, setOpen] = useState<boolean>(false);
   const [page, setPage] = useState<number>(0);
@@ -117,7 +117,12 @@ const ListaTasks: React.FC<ListaTasksProps> = () => {
       console.error("Erro durante a atualização da tarefa:", error);
     }
   };
-
+  const handlePageChange = (
+    event: React.ChangeEvent<unknown>,
+    value: number
+  ) => {
+    setPage(value - 1);
+  };
   const ChangeRowsPerPage = (event: ChangeEvent<HTMLInputElement>) => {
     setRowsPerPage(+event.target.value);
     setPage(0);
@@ -186,155 +191,211 @@ const ListaTasks: React.FC<ListaTasksProps> = () => {
   };
 
   return (
-    <Grid container>
-      <Grid
-        xs={12}
-        container
-        direction="row"
-        justifyContent="space-between"
-        alignItems="center"
-        mb={2}
-      >
-        <Grid xs={4}>
-          <Typography sx={{ color: theme.palette.dark.main }} variant="h6">
-            Minhas Tarefas
-          </Typography>
-          <Divider width={"35%"} />
+    <Container
+      maxWidth={false}
+      disableGutters={true}
+      sx={{
+        height: "100vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: "#1E3345",
+      }}
+    >
+     
+      <Paper
+     
+        sx={{
+          width: "90%",
+          height: "85%",
+          borderRadius: 2,
+          overflow: "hidden",
+          backgroundColor: "#F1F1F1",
+        }}  
+      > 
+        <Grid
+          container
+          sx={{
+            height: "100%",
+          }}
+        >
+          <Grid item sm={12} sx={{ overflowY: "scroll", height: "100%" }}>
+            <Container maxWidth={false} sx={{ py: 2 }}>
+              <Grid container>
+                
+                <Grid
+                  xs={12}
+                  container
+                  direction="row"
+                  justifyContent="space-between"
+                  alignItems="center"
+                  mb={2}
+                >
+                   <Grid xs={4}>
+                    <Typography
+                      sx={{ color: theme.palette.dark.main }}
+                      variant="h6"
+                    >
+                      Minhas Tarefas
+                    </Typography>
+                    <Divider width={"35%"} />
+                  </Grid>
+                  <Grid xs={3} textAlign="right">
+                    <Button
+                      variant="contained"
+                      onClick={() => {
+                        setOpen(true);
+                      }}
+                    >
+                      Criar nova tarefa
+                    </Button>
+                  </Grid>
+                </Grid>
+
+                <Grid xs={12} container>
+                  <Grid xs={12}>
+                    <Paper>
+                      <TableContainer sx={{ maxHeight: "100%" }}>
+                        <Table
+                          stickyHeader
+                          size="medium"
+                          aria-label="sticky table"
+                        >
+                          <TableHead>
+                            <TableRow>
+                              <TableCell align="center">Titulo</TableCell>
+                              <TableCell align="center">Data</TableCell>
+                              <TableCell align="center">Status</TableCell>
+                              <TableCell align="center">Ações</TableCell>
+                            </TableRow>
+                          </TableHead>
+                          <TableBody>
+                            {tasks
+                              .slice()
+                              .reverse()
+                              .slice(
+                                page * rowsPerPage,
+                                page * rowsPerPage + rowsPerPage
+                              )
+                              .map((task) => (
+                                <TableRow key={task.id}>
+                                  <TableCell align="center">
+                                    {task.title}
+                                  </TableCell>
+                                  <TableCell align="center">
+                                    {new Date(task.date).toLocaleDateString(
+                                      "pt-BR"
+                                    )}
+                                  </TableCell>
+
+                                  <TableCell align="center" >
+                                    <Select
+                                      
+                                      value={task.status}
+                                      onChange={(e) =>
+                                        StatusChange(
+                                          task,
+                                          e.target.value as TaskStatus
+                                        )
+                                      }
+                                      style={{
+                                        backgroundColor:
+                                          TaskStatusColors[task.status] || "",
+                                      }}
+                                      id={`status-select-${task.id}`}
+                                    >
+                                      {Object.keys(TaskStatusColors).map(
+                                        (status) => (
+                                          <MenuItem
+                                            key={status}
+                                            value={status}
+                                            style={{
+                                              backgroundColor:
+                                                TaskStatusColors[
+                                                  status as TaskStatus
+                                                ],
+                                            }}
+                                          >
+                                            {status}
+                                          </MenuItem>
+                                        )
+                                      )}
+                                    </Select>
+                                  </TableCell>
+
+                                  <TableCell align="center">
+                                    <DialogActions>
+                                      <Button
+                                        size="small"
+                                        variant="contained"
+                                        color="error"
+                                        startIcon={<DeleteOutlinedIcon />}
+                                        onClick={() => {
+                                          DeleteTask(task);
+                                        }}
+                                      >
+                                        Excluir
+                                      </Button>
+                                      <Button
+                                        size="small"
+                                        variant="contained"
+                                        onClick={() => OpenEditModal(task)}
+                                        startIcon={<EditOutlinedIcon />}
+                                      >
+                                        Editar
+                                      </Button>
+                                      <Button
+                                        color="success"
+                                        size="small"
+                                        variant="contained"
+                                        onClick={() => OpenDetailedModal(task)}
+                                        startIcon={<RemoveRedEyeOutlinedIcon />}
+                                      >
+                                        Descrição
+                                      </Button>
+                                    </DialogActions>
+                                  </TableCell>
+                                </TableRow>
+                              ))}
+                          </TableBody>
+                        </Table>
+                      </TableContainer>
+
+                    </Paper>
+                  </Grid>
+                </Grid>
+                <Pagination
+                        color="primary"
+                        count={Math.ceil(tasks.length / rowsPerPage)}
+                        page={page + 1}
+                        onChange={handlePageChange}
+                        sx={{ margin: 'auto' , marginTop: '20px' }} 
+                      />
+                <NewTaskModal
+                  open={open}
+                  onClose={() => {
+                    setOpen(false);
+                  }}
+                  tasksList={tasks}
+                  onTaskCreate={TaskCreate}
+                />
+                <TaskDescription
+                  open={openModal}
+                  onClose={() => setOpenModal(false)}
+                  detailedTask={detailedTask}
+                />
+                <TaskEdit
+                  open={openEditModal}
+                  onClose={() => setOpenEditModal(false)}
+                  editedTask={editedTask}
+                  onEditTask={EditTask}
+                />
+              </Grid>
+            </Container>
+          </Grid>
         </Grid>
-        <Grid xs={3} textAlign="right">
-          <Button
-            variant="contained"
-            onClick={() => {
-              setOpen(true);
-            }}
-          >
-            Criar nova tarefa
-          </Button>
-        </Grid>
-      </Grid>
-
-      <Grid xs={12} container>
-        <Grid xs={12}>
-          <Paper>
-            <TableContainer sx={{ maxHeight: "100%" }}>
-              <Table stickyHeader size="medium" aria-label="sticky table">
-                <TableHead>
-                  <TableRow>
-                    <TableCell align="center">Titulo</TableCell>
-                    <TableCell align="center">Data</TableCell>
-                    <TableCell align="center">Status</TableCell>
-                    <TableCell align="center">Ações</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {tasks
-                    .slice()
-                    .reverse()
-                    .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                    .map((task) => (
-                      <TableRow key={task.id}>
-                        <TableCell align="center">{task.title}</TableCell>
-                        <TableCell align="center">
-                          {new Date(task.date).toLocaleDateString("pt-BR")}
-                        </TableCell>
-
-                        <TableCell align="center">
-                          <Select
-                            value={task.status}
-                            onChange={(e) =>
-                              StatusChange(task, e.target.value as TaskStatus)
-                            }
-                            style={{
-                              backgroundColor:
-                                TaskStatusColors[task.status] || "",
-                            }}
-                            id={`status-select-${task.id}`}
-                          >
-                            {Object.keys(TaskStatusColors).map((status) => (
-                              <MenuItem
-                                key={status}
-                                value={status}
-                                style={{
-                                  backgroundColor:
-                                    TaskStatusColors[status as TaskStatus],
-                                }}
-                              >
-                                {status}
-                              </MenuItem>
-                            ))}
-                          </Select>
-                        </TableCell>
-
-                        <TableCell align="center">
-                          <DialogActions>
-                            <Button
-                              size="small"
-                              variant="contained"
-                              color="error"
-                              startIcon={<DeleteOutlinedIcon />}
-                              onClick={() => {
-                                DeleteTask(task);
-                              }}
-                            >
-                              Excluir
-                            </Button>
-                            <Button
-                              size="small"
-                              variant="contained"
-                              onClick={() => OpenEditModal(task)}
-                              startIcon={<EditOutlinedIcon />}
-                            >
-                              Editar
-                            </Button>
-                            <Button
-                              color="success"
-                              size="small"
-                              variant="contained"
-                              onClick={() => OpenDetailedModal(task)}
-                              startIcon={<RemoveRedEyeOutlinedIcon />}
-                            >
-                              Descrição
-                            </Button>
-                          </DialogActions>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-            <TablePagination
-              rowsPerPageOptions={[10, 25, 100]}
-              component="div"
-              count={tasks.length}
-              rowsPerPage={rowsPerPage}
-              page={page}
-              onPageChange={ChangePage}
-              onRowsPerPageChange={ChangeRowsPerPage}
-            />
-          </Paper>
-        </Grid>
-      </Grid>
-
-      <NewTaskModal
-        open={open}
-        onClose={() => {
-          setOpen(false);
-        }}
-        tasksList={tasks}
-        onTaskCreate={TaskCreate}
-      />
-      <TaskDescription
-        open={openModal}
-        onClose={() => setOpenModal(false)}
-        detailedTask={detailedTask}
-      />
-      <TaskEdit
-        open={openEditModal}
-        onClose={() => setOpenEditModal(false)}
-        editedTask={editedTask}
-        onEditTask={EditTask}
-      />
-    </Grid>
+      </Paper>
+    </Container>
   );
 };
 
