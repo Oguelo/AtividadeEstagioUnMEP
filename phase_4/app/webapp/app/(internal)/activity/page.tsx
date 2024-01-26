@@ -123,14 +123,6 @@ const ListaTasks = () => {
   ) => {
     setPage(value - 1);
   };
-  const ChangeRowsPerPage = (event: ChangeEvent<HTMLInputElement>) => {
-    setRowsPerPage(+event.target.value);
-    setPage(0);
-  };
-
-  const ChangePage = (_: any, newPage: number) => {
-    setPage(newPage);
-  };
 
   const EditTask = async (editTask: Task) => {
     const id = editTask.id;
@@ -202,17 +194,15 @@ const ListaTasks = () => {
         backgroundColor: "#1E3345",
       }}
     >
-     
       <Paper
-     
         sx={{
           width: "90%",
           height: "85%",
           borderRadius: 2,
           overflow: "hidden",
           backgroundColor: "#F1F1F1",
-        }}  
-      > 
+        }}
+      >
         <Grid
           container
           sx={{
@@ -222,7 +212,6 @@ const ListaTasks = () => {
           <Grid item sm={12} sx={{ overflowY: "scroll", height: "100%" }}>
             <Container maxWidth={false} sx={{ py: 2 }}>
               <Grid container>
-                
                 <Grid
                   xs={12}
                   container
@@ -231,7 +220,7 @@ const ListaTasks = () => {
                   alignItems="center"
                   mb={2}
                 >
-                   <Grid xs={4}>
+                  <Grid xs={4}>
                     <Typography
                       sx={{ color: theme.palette.dark.main }}
                       variant="h6"
@@ -283,14 +272,13 @@ const ListaTasks = () => {
                                     {task.title}
                                   </TableCell>
                                   <TableCell align="center">
-                                    {new Date(task.date).toLocaleDateString(
-                                      "pt-BR"
-                                    )}
+                                    {new Date(
+                                      task.date + "T00:00:00"
+                                    ).toLocaleDateString("pt-BR")}
                                   </TableCell>
 
-                                  <TableCell align="center" >
+                                  <TableCell align="center">
                                     <Select
-                                      
                                       value={task.status}
                                       onChange={(e) =>
                                         StatusChange(
@@ -360,17 +348,16 @@ const ListaTasks = () => {
                           </TableBody>
                         </Table>
                       </TableContainer>
-
                     </Paper>
                   </Grid>
                 </Grid>
                 <Pagination
-                        color="primary"
-                        count={Math.ceil(tasks.length / rowsPerPage)}
-                        page={page + 1}
-                        onChange={handlePageChange}
-                        sx={{ margin: 'auto' , marginTop: '20px' }} 
-                      />
+                  color="primary"
+                  count={Math.ceil(tasks.length / rowsPerPage)}
+                  page={page + 1}
+                  onChange={handlePageChange}
+                  sx={{ margin: "auto", marginTop: "20px" }}
+                />
                 <NewTaskModal
                   open={open}
                   onClose={() => {

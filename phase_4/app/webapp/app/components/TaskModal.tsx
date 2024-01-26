@@ -160,6 +160,10 @@ const NewTaskModal: React.FC<NewTaskModalProps> = ({
             onChange={(e) =>
               setNewTask({ ...newTask, status: e.target.value as TaskStatus })
             }
+            sx={{
+              backgroundColor:  TaskStatusColors[newTask.status]
+        
+            }}
           >
             {Object.keys(TaskStatusColors).map((statusKey) => {
               const status = statusKey as TaskStatus; 
