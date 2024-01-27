@@ -44,4 +44,4 @@ Apos isso, para acessar o sistema,basta digitar no navegador: http://localhost/a
 
 ## Observação
 Em caso de problemas  ou lentidao ao rodar o front utilizando o docker, pode-se utilizar o node(mas so pro front :) ) 
-Nesse caso, basta acessar a pasta pelo cmd `\app\webapp` e rodar o comando `npm run dev`
+Nesse caso, basta acessar a pasta pelo cmd `\app\webapp` e instalar o node e rodar o comando `npm run dev`
